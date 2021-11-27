@@ -14,38 +14,33 @@ import org.apache.lucene.search.TopDocs;
 
 public class LuceneTester {
 	
-	String dataDir = "C:\\Users\\Vasilis\\eclipse-workspace\\LuceneProject1\\Data\\Demo";
-	String indexDir = "C:\\Users\\Vasilis\\eclipse-workspace\\LuceneProject1\\Index";
+	private String dataDir = "C:\\Users\\Vasilis\\eclipse-workspace\\LuceneProject1\\Data\\Demo";
+	private String indexDir = "C:\\Users\\Vasilis\\eclipse-workspace\\LuceneProject1\\Index";
 //	String dataDir = "C:\\Users\\Vasilis\\eclipse-workspace\\LuceneProject1\\Data\\Reuters_articles";
-	Indexer indexer;
-	Searcher searcher;
-	static String [] args_javafx;
-	static LuceneTester tester;
+	private Indexer indexer;
+	private Searcher searcher;
+	private static String [] args_javafx;
+	private static LuceneTester tester;
 	
 	public static void main(String[] args) throws IOException {
-		LuceneTester tester;
-		
+
 		//--------------DELETE INDEX---------------
 		File index = new File("C:\\Users\\Vasilis\\eclipse-workspace\\LuceneProject1\\Index\\");
 		deleteDirectoryStream(index.toPath());
 		//--------------DELETE INDEX---------------
+
+		args_javafx=args;//xreiazomai ta args tis main gia na trexei to javafx
 		
-		args_javafx=args;
 		try {
-			tester = new LuceneTester();
-			tester.createIndex();
-			String query="where usa";
-//			String[]query2 =query.split(" ");
-//			query2=[where,usa];
-//			for(query2)
-			tester.search(query);
-			
+			//add here whatever you want to run
+			new LuceneTester().createIndex();//creates The Index
+			JavaFx.main(args_javafx);//runs the javafx 	
 		} catch (IOException e) {
 			e.printStackTrace();
-		} catch (ParseException e) {
-		e.printStackTrace();
 		}
-		}
+	}
+	
+	//Creates new Index
 		private void createIndex() throws IOException {
 			indexer = new Indexer(indexDir);
 			int numIndexed;
@@ -56,7 +51,8 @@ public class LuceneTester {
 			System.out.println(numIndexed+" File(s) indexed, time taken: " +(endTime-startTime)/1000+" sec");
 		}
 
-		private void search(String searchQuery) throws IOException, ParseException {
+		//Search
+		public void search(String searchQuery) throws IOException, ParseException {
 			searcher = new Searcher(indexDir);
 			long startTime = System.currentTimeMillis();
 			ArrayList<TopDocs> hits = searcher.search(searchQuery);
@@ -64,7 +60,7 @@ public class LuceneTester {
 			
 			
 			ArrayList<Document> doc_arr = new ArrayList<Document>(); //Arraylist gia na pernaw ta docs kai na ta emfanizw
-			int x=0;
+			int x=0;//just to see how many i found
 			for(TopDocs hit : hits) {
 				switch(x) {
 				case 0://title
@@ -82,6 +78,7 @@ public class LuceneTester {
 					break;
 				}
 				x++;
+				
 				for(ScoreDoc scoreDoc : hit.scoreDocs) {
 					Document doc = searcher.getDocument(scoreDoc);
 					doc_arr.add(doc);//add docs into arraylist
@@ -89,11 +86,11 @@ public class LuceneTester {
 				}
 			}
 			
-			JavaFx.main(args_javafx,doc_arr);//runs the javafx 
-			
+			JavaFx.getDoc_arr(doc_arr);
 			searcher.close();
 		}
 		
+		//Display the Right form to console for check
 		public static void FormatofDoc(Document doc) {
 			System.out.println("---------------------------------");
 			System.out.println("PEOPLE: " + doc.get(LuceneConstants.PEOPLE));
@@ -103,6 +100,7 @@ public class LuceneTester {
 			System.out.println("File: " + doc.get(LuceneConstants.FILE_PATH));
 			System.out.println("---------------------------------");
 		}
+		
 		//Delete Index
 		//https://softwarecave.org/2018/03/24/delete-directory-with-contents-in-java/
 		private static void deleteDirectoryStream(Path path) throws IOException {
@@ -113,7 +111,7 @@ public class LuceneTester {
 			    .forEach(File::delete);
 		}
 		
-		//egw to ftiaja
+		//Update and makes a new Index
 		public static void Update() throws IOException {
 			File index = new File("C:\\Users\\Vasilis\\eclipse-workspace\\LuceneProject1\\Index\\");
 			deleteDirectoryStream(index.toPath());

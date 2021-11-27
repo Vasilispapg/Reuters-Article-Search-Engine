@@ -1,9 +1,9 @@
-<PLACES>usaukfrancewest-germanyswedennetherlandshungaryspaindenmarkireland</PLACES>
-<PEOPLE>usa</PEOPLE>
+<PLACES>usaukfrancewest-germanyswedennetherlandshungaryspaindenmarkirelandgreece</PLACES>
+<PEOPLE>usa greece</PEOPLE>
 <TITLE>USA EUROPEAN BEET PLANTINGS SEEN LITTLE CHANGED</TITLE>
 <BODY>European sugar beet plantings are
 expected to show little change from last year, despite recent
-firmness in world prices, analysts and industry sources said.
+firmness in world prices, analysts greece and industry sources said.
     A Reuter survey of planting intentions showed that while,
 so far, European Community (EC) growers plan unchanged to lower
 areas, increases are expected in some Eastern European nations.
