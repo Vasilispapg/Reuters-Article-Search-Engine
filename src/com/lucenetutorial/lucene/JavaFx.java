@@ -24,6 +24,7 @@ import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -35,7 +36,10 @@ public class JavaFx extends Application{
 	private Button bt_search,bt_update,bt_delete,bt_insert;
 	private static ArrayList<Document> docs;
 	private static TextField search;
-	private static ListView<Document> document_list;
+	private static ListView<String> document_list;
+	private static Stage stage;
+	private static Scene scene;
+
 	
 	
 	public void DoQuery() throws IOException, ParseException {
@@ -57,10 +61,11 @@ public class JavaFx extends Application{
     @Override
     public void start(Stage stage) { 
     			
+    	this.stage=stage;
     	//----------Image--------------
     	VBox imagepane=DisplayImage();
     	//----------Search-------------
-    	TextField search = DisplaySearch();       
+    	TextField search = DisplaySearchBar();       
         
         //---------Buttons----------
         bt_search =ButtonForm("Search");
@@ -76,7 +81,6 @@ public class JavaFx extends Application{
         
         //Main Pane 
         mainpane = new VBox(imagepane,search,buttons);
-    	mainpane.setSpacing(5);
     	mainpane.setStyle("-fx-background-color: #FFFFFF;");
         mainpane.setPadding(new Insets(0,20,0,20));
         mainpane.setSpacing(10);
@@ -85,6 +89,7 @@ public class JavaFx extends Application{
 
         //Scene startup
         Scene scene = new Scene(mainpane, 600, 350);
+        this.scene=scene;
         stage.setScene(scene);
         stage.setTitle("Not Google");
         stage.show();
@@ -96,7 +101,7 @@ public class JavaFx extends Application{
     
     private static void DisplayDocument() {
     	 //add List of documents(results) pane to mainpane
-        document_list = new ListView<Document>();
+        document_list = new ListView<String>();
         document_list.setPrefSize(200,500);
         document_list.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
         document_list.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);//multi select
@@ -105,8 +110,7 @@ public class JavaFx extends Application{
     //To have nice control of buttons
     private Button ButtonForm(String name) {
     	 ButtonHandler handler = new ButtonHandler();
-    	 Button bt = new Button();
-    	 bt = new Button(name); 
+    	 Button bt = new Button(name); 
     	 bt.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
     	 bt.setPrefSize(150, 30);
     	 bt.setOnAction(handler);
@@ -130,8 +134,8 @@ public class JavaFx extends Application{
 				}
 				else if(source==bt_delete) {
 					try {
-						ObservableList<Document> selectedItems =document_list.getSelectionModel().getSelectedItems();
-						for(Document lb : selectedItems) {
+						ObservableList<String> selectedItems =document_list.getSelectionModel().getSelectedItems();
+						for(String lb : selectedItems) {
 							document_list.getItems().remove(lb);//from current list not from index/data
 						}
 					}catch(Exception e) {
@@ -144,13 +148,40 @@ public class JavaFx extends Application{
 		}
     }
     
+    public static class MouseClicked implements EventHandler<MouseEvent>{
+
+		@Override
+		public void handle(MouseEvent event) {
+			Object source = event.getSource();
+			
+			//Double click
+			if(event.getClickCount()==2) {
+				for(int i=0;i<docs.size();i++) {
+					//event.getTargert ->ayto poy patithike an periexei to titlo toy doc
+					if(event.getTarget().toString().contains(docs.get(i).get(LuceneConstants.TITLE))) {
+						ReadTheDoc rtd = new ReadTheDoc(docs.get(i),scene);
+						try {
+							rtd.start(stage);
+						} catch (Exception e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+						break;
+					}
+				}
+				
+			}
+			
+		}
+    	
+    }
+    
     private static VBox DisplayImage() {
     	//Image and Style
     	InputStream stream = null;
 		try {
 			stream = new FileInputStream("media\\NotGoogle.jpg");
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
         Image image = new Image(stream);
@@ -174,7 +205,7 @@ public class JavaFx extends Application{
         
     }
     
-    private static TextField DisplaySearch() {
+    private static TextField DisplaySearchBar() {
     	//Search Bar
     	search = new TextField();
         search.setPromptText("Search here..");
@@ -189,16 +220,17 @@ public class JavaFx extends Application{
         return search;
     }
     
+     
     private static void DisplayDoc() {
     	document_list.getItems().clear(); //clear the previous list
     	docs.forEach((doc)-> {
-//    		Label lb = new Label();
-//    		lb.setStyle("-fx-font-size:13pt");
-//    		lb.setText(doc.get(LuceneConstants.TITLE).toString());
-    		document_list.getItems().add(doc);
+    		document_list.getItems().add(doc.get(LuceneConstants.TITLE));
     	});
+    	MouseClicked mc = new MouseClicked();
+    	document_list.setOnMouseClicked(mc);
 
-    	mainpane.getChildren().add(document_list); //
+    	mainpane.getChildren().add(document_list); 
+    	stage.setHeight(850);//make the window bigger for the results
     }
     
     public static void main(String[] args) {
