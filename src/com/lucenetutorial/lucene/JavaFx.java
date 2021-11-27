@@ -30,7 +30,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 public class JavaFx extends Application{
-	
+
 	private static VBox mainpane;
 	private Button bt_search,bt_update,bt_delete,bt_insert;
 	private static ArrayList<Document> docs;
@@ -89,6 +89,7 @@ public class JavaFx extends Application{
         stage.setTitle("Not Google");
         stage.show();
         stage.setMinHeight(stage.getHeight());
+        stage.getIcons().add(new Image("file:media//NotGoogle-icon.jpg"));
         stage.setMinWidth(stage.getWidth());
 
     }
@@ -161,7 +162,7 @@ public class JavaFx extends Application{
         
         //Setting the image view parameters
         imageView.setFitHeight(150);
-        imageView.setFitWidth(320);
+        imageView.setFitWidth(500);
         VBox.setVgrow(imageView, Priority.ALWAYS);
 
         //image pane
@@ -188,7 +189,7 @@ public class JavaFx extends Application{
         return search;
     }
     
-    public static void DisplayDoc() {
+    private static void DisplayDoc() {
     	document_list.getItems().clear(); //clear the previous list
     	docs.forEach((doc)-> {
 //    		Label lb = new Label();
@@ -201,7 +202,6 @@ public class JavaFx extends Application{
     }
     
     public static void main(String[] args) {
-    	
     	launch(args);
     }
 
