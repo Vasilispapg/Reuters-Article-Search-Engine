@@ -32,6 +32,7 @@ public class Indexer {
 //evretiria  dimiourgia / enhmerwsh
  Analyzer analyzer = new StandardAnalyzer();
  
+ 
 	public Indexer(String indexDirectoryPath) throws IOException {
 		//this directory will contain the indexes
 		Path indexPath = Paths.get(indexDirectoryPath);
@@ -56,32 +57,46 @@ public class Indexer {
 
 	 String currentLine = br.readLine().toString();
 	 String places="",title="",body="",people="";
+	 
+	 //an allajei grami ta kollaei
 	 int count=0;
 	 do{
 		switch(count){
-			case 0: places =currentLine;
-				places=places.replace("<PLACES>", "");
-				places=places.replace("</PLACES>", "");
+			case 0: 	
+				places = places.concat(currentLine);
+				if(currentLine.contains("</PLACES>"))count++;
 			break;
-			case 1: people = currentLine;
-				people=people.replace("<PEOPLE>", "");
-				people=people.replace("</PEOPLE>", "");
+			case 1: 
+				people = people.concat(currentLine);
+				if(currentLine.contains("</PEOPLE>"))count++;
 			break;
-			case 2: title = currentLine;
-				title=title.replace("<TITLE>", "");
-				title=title.replace("</TITLE>", "");
+			case 2: 
+				title = title.concat(currentLine);
+				if(currentLine.contains("</TITLE>"))count++;
 			break;
-			case 3: body=currentLine;
-				body=body.replace("<BODY>", "");
-				body=body.toLowerCase();
+			case 3: 
+				body = body.concat(currentLine);
+				if(currentLine.contains("</BODY>"))count++;
 			break;
-			default: body=body.concat(currentLine);break;
 		}
-		count+=1;
 		currentLine = br.readLine();
 	 }while(null!=currentLine);
+	 
+	 body=body.replace("<BODY>", "");
+	 title=title.replace("<TITLE>", "");
+	 places=places.replace("<PLACES>", "");
+	 people=people.replace("<PEOPLE>", "");
+	 body=body.replace("</BODY>", "");
+	 title=title.replace("</TITLE>", "");
+	 places=places.replace("</PLACES>", "");
+	 people=people.replace("</PEOPLE>", "");
+	 
+	 body=ReplaceSpaces(body);
+	 title=ReplaceSpaces(title);
 
-	 body=body.replace("</BODY>", ""); // gia na min trexei synexeia
+	 people=people.toLowerCase();
+	 places=places.toLowerCase();
+	 //9711 KAI 9776 EINAI IDIA, KAI ALLA POLLA
 
 	 //displayTokenUsingStandardAnalyzer(title);
 	 
@@ -110,10 +125,24 @@ public class Indexer {
 	 document.add(fileNameField);
 	 document.add(filePathField);
 	 
+//	 LuceneTester.FormatofDoc(document);
+	 
 	
 	 br.close();
 	 return document;
  }
+
+private String ReplaceSpaces(String s) {
+	
+	if(!s.isEmpty()) {
+		if(s.length()>2)s= s.replace(". ", ".");
+		if(s.length()>3)s= s.replace(".  ", ".");
+		if(s.length()>4) s= s.replace(".   ", ".");
+		if(s.length()>5) s=s.replace(".    ", ".");
+	}
+	return s;
+ }
+ 
 
  
  private void indexFile(File file) throws IOException {

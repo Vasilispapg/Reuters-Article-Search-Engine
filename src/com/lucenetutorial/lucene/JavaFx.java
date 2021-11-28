@@ -45,7 +45,8 @@ public class JavaFx extends Application{
 	public void DoQuery() throws IOException, ParseException {
 		String query = search.getText();
 		try {
-			new LuceneTester().search(query);
+			if(!query.isEmpty())
+				new LuceneTester().search(query);
 		} catch (ParseException e) {
 			e.printStackTrace();
 			}
