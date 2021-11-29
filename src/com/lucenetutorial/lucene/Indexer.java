@@ -24,6 +24,7 @@ import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
+import org.tartarus.snowball.ext.PorterStemmer;
 
 
 public class Indexer {
@@ -82,6 +83,7 @@ public class Indexer {
 		currentLine = br.readLine();
 	 }while(null!=currentLine);
 	 
+
 	 body=body.replace("<BODY>", "");
 	 title=title.replace("<TITLE>", "");
 	 places=places.replace("<PLACES>", "");
@@ -91,14 +93,16 @@ public class Indexer {
 	 places=places.replace("</PLACES>", "");
 	 people=people.replace("</PEOPLE>", "");
 	 
-	 body=ReplaceSpaces(body);
-	 title=ReplaceSpaces(title);
+	 PorterStemmer stemmer = new PorterStemmer();//apache-lucene-snowball jar
+	 stemmer.setCurrent(body);//string
+	 stemmer.stem();//stem
+	 body=stemmer.getCurrent();//pairneis to string
+	 
 
 	 people=people.toLowerCase();
 	 places=places.toLowerCase();
 	 //9711 KAI 9776 EINAI IDIA, KAI ALLA POLLA
 
-	 //displayTokenUsingStandardAnalyzer(title);
 	 
 	  	/* In Lucene, they are different, even it's not looks so obvious. A string is a single unit that 
 	  	not supposed to be separated, analyzed. For example, the id, email, url, date, etc.
@@ -127,22 +131,21 @@ public class Indexer {
 	 
 //	 LuceneTester.FormatofDoc(document);
 	 
-	
 	 br.close();
 	 return document;
  }
-
-private String ReplaceSpaces(String s) {
-	
-	if(!s.isEmpty()) {
-		if(s.length()>2)s= s.replace(". ", ".");
-		if(s.length()>3)s= s.replace(".  ", ".");
-		if(s.length()>4) s= s.replace(".   ", ".");
-		if(s.length()>5) s=s.replace(".    ", ".");
-	}
-	return s;
- }
- 
+//
+//private String ReplaceSpaces(String s) {
+//	
+//	if(!s.isEmpty()) {
+//		if(s.length()>2)s= s.replace(". ", ".");
+//		if(s.length()>3)s= s.replace(".  ", ".");
+//		if(s.length()>4) s= s.replace(".   ", ".");
+//		if(s.length()>5) s=s.replace(".    ", ".");
+//	}
+//	return s;
+// }
+// 
 
  
  private void indexFile(File file) throws IOException {
@@ -161,17 +164,5 @@ private String ReplaceSpaces(String s) {
 	 return writer.numRamDocs();
  }
  
- 
- //TODO KANE STEMMING KAI ALLES MALAKIES
- public void displayTokenUsingStandardAnalyzer(String text) throws IOException {
-     TokenStream tokenStream = analyzer.tokenStream(LuceneConstants.CONTENTS, new StringReader(text));
-     CharTermAttribute term = tokenStream.addAttribute(CharTermAttribute.class);
-     tokenStream.reset();
-//     System.out.println(title);
-     while (tokenStream.incrementToken()) {
-         System.out.print("[" + term.toString() + "] ");
-     }
-     tokenStream.close();
- }
 
 }
