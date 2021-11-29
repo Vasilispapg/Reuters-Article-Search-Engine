@@ -64,6 +64,7 @@ public class LuceneTester {
 			for(TopDocs hit : hits) {
 				switch(x) {
 				case 0://title
+					//TODO FTIAXTO
 					System.out.println("into Title ->"+hit.totalHits +" documents found. Time :" + (endTime - startTime));
 					break;
 				case 1:
@@ -93,9 +94,11 @@ public class LuceneTester {
 		//Display the Right form to console for check
 		public static void FormatofDoc(Document doc) {
 			System.out.println("---------------------------------");
-			System.out.println("PEOPLE: " + doc.get(LuceneConstants.PEOPLE));
+			System.out.println("PEOPLE: " + doc.get(LuceneConstants.PEOPLEINDEX));
+			System.out.println("Titleindex: "+doc.get(LuceneConstants.TITLEINDEX));
 			System.out.println("Title: "+doc.get(LuceneConstants.TITLE));
-			System.out.println("Place: " + doc.get(LuceneConstants.PLACE));
+			System.out.println("Place: " + doc.get(LuceneConstants.PLACEINDEX));
+			System.out.println("Bodyindex: "+doc.get(LuceneConstants.BODYINDEX));
 			System.out.println("Body: "+doc.get(LuceneConstants.BODY));	
 			System.out.println("File: " + doc.get(LuceneConstants.FILE_PATH));
 			System.out.println("---------------------------------");

@@ -34,10 +34,10 @@ public class Searcher {
 		indexSearcher = new IndexSearcher(indexReader);
 		//edw toy les poy na kanei anazitisi
 		
-		queryParserTitle = new QueryParser(LuceneConstants.TITLE, new StandardAnalyzer());
-		queryParserBody = new QueryParser(LuceneConstants.BODY, new StandardAnalyzer());
-		queryParserPeople = new QueryParser(LuceneConstants.PEOPLE, new StandardAnalyzer());
-		queryParserPlace = new QueryParser(LuceneConstants.PLACE, new StandardAnalyzer());
+		queryParserTitle = new QueryParser(LuceneConstants.TITLEINDEX, new StandardAnalyzer());
+		queryParserBody = new QueryParser(LuceneConstants.BODYINDEX, new StandardAnalyzer());
+		queryParserPeople = new QueryParser(LuceneConstants.PEOPLEINDEX, new StandardAnalyzer());
+		queryParserPlace = new QueryParser(LuceneConstants.PLACEINDEX, new StandardAnalyzer());
 	}
 	
 	public ArrayList<TopDocs> search(String searchQuery) throws IOException, ParseException {
@@ -55,6 +55,7 @@ public class Searcher {
 		 
 		query = queryParserPlace.parse(searchQuery);
 		TopDocs hitsPlace= indexSearcher.search(query, LuceneConstants.MAX_SEARCH);
+
 		
 		//add topdocs into arraylist
 		hits.add(hitsTitle);hits.add(hitsPlace);
