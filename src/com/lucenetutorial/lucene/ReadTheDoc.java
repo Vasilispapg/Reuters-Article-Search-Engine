@@ -23,12 +23,12 @@ import javafx.stage.Stage;
 
 public class ReadTheDoc extends Application{
 	
-	Document doc;
-	Button back_bt;
+	private Document doc;
+	private Button back_bt;
 	
 	//---------------ta xreiazomai gia na gyrnaw stin pisw selida------------
-	Scene scene;
-	Stage stage;
+	private Scene scene;
+	private Stage stage;
 	//---------------ta xreiazomai gia na gyrnaw stin pisw selida------------
 	
 	public ReadTheDoc(Document doc,Scene scene) {
@@ -38,26 +38,15 @@ public class ReadTheDoc extends Application{
 
 	 private Button ButtonForm(String name) {
 		 ImageView back_img = new ImageView(new Image(new File("media/back.png").getAbsolutePath()));
-    	 ButtonHandler handler = new ButtonHandler();
     	 Button bt = new Button(name,back_img); 
     	 bt.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
     	 bt.setPrefSize(30, 30);
-    	 bt.setOnAction(handler);
+    	 bt.setOnAction((e)->{
+    		 stage.setScene(scene);
+    	 });
          return bt;
 //		 return new Button();
     }
-	 
-	 private class ButtonHandler implements EventHandler<ActionEvent>{
-
-		@Override
-		public void handle(ActionEvent event) {
-			Object source = event.getSource();
-			if(source==back_bt) {
-				stage.setScene(scene);//gyrnaw stin selida anazitisis
-			}
-		}
-		 
-	 }
 	 
 	@Override
 	public void start(Stage stage) throws Exception {
@@ -75,15 +64,13 @@ public class ReadTheDoc extends Application{
 		
 		body.setTextAlignment(TextAlignment.LEFT);
 		
-		 ScrollPane scroll = new ScrollPane();
-	     scroll.setPrefSize(550, 850);
-	     //Setting content to the scroll pane
-	     scroll.setContent(body);
-	     scroll.setPadding(new Insets(0,0,0,30));
-	     scroll.setStyle("-fx-background-color:transparent");
+		ScrollPane scroll = new ScrollPane();
+	    scroll.setPrefSize(550, 850);
+	    //Setting content to the scroll pane
+	    scroll.setContent(body);
+	    scroll.setPadding(new Insets(0,0,0,30));
+	    scroll.setStyle("-fx-background-color:transparent");
 
-
-	      
 		//MainPane
 		VBox mainpane = new VBox(back_bt,title,scroll);
     	mainpane.setStyle("-fx-background-color: #f4f4f4;");

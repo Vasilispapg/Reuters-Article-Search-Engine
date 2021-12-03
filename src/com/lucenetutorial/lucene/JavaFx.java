@@ -1,13 +1,24 @@
 package com.lucenetutorial.lucene;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
 import java.util.ArrayList;
-
+import java.util.regex.Pattern;
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
+import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.IndexWriterConfig.OpenMode;
+import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.ParseException;
+import org.apache.lucene.queryparser.classic.QueryParser;
+import org.apache.lucene.search.Query;
+import org.apache.lucene.store.Directory;
+import org.apache.lucene.store.FSDirectory;
 import javafx.application.Application;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -21,6 +32,7 @@ import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -33,17 +45,29 @@ public class JavaFx extends Application{
 	private Button bt_search,bt_update,bt_delete,bt_insert;
 	private static ArrayList<Document> docs;
 	private static TextField search;
-	private static ListView<String> document_list;
+	private static ListView<String> document_listView;
 	private static Stage stage;
 	private static Scene scene;
+	private IndexWriter indexWriter;
 
 	
-	
-	public void DoQuery() throws IOException, ParseException {
+	public static void DoQuery() throws IOException, ParseException {
 		String query = search.getText();
 		try {
-			if(!query.isEmpty())
-				new LuceneTester().search(query);
+			//title:Do it right psaxnei mono ston titlo me ayto
+			//prashes
+			if(Pattern.compile("\"[^\\r\\n\\t\\f\\v]+\"").matcher(query).matches()) {
+				new LuceneTester().search(query,"phrase");
+			}
+			//Logical queries
+			else if(Pattern.compile("[a-zA-Z0-9_!@#$%^&*()]+ (AND|OR|NOT) [a-zA-Z0-9_!@#$%^&*()]++").matcher(query).matches()) {
+				new LuceneTester().search(query,"boolean");
+			}
+			else if(!query.isEmpty())
+			{
+				query=new Indexer().stemmerStopWords(query);
+				new LuceneTester().search(query,"query");
+			}
 		} catch (ParseException e) {
 			e.printStackTrace();
 			}
@@ -52,13 +76,20 @@ public class JavaFx extends Application{
 		}
 	}
 	
-	public static void getDoc_arr(ArrayList<Document> docs_arr) {
+	public static void setDoc_arr(ArrayList<Document> docs_arr) {
 		docs=docs_arr; //takes arraylist to local variable
 	}
 	
     @Override
-    public void start(Stage stage) { 
+    public void start(Stage stage) throws IOException, ParseException { 
     			
+    	//Config gia delete/update/insert
+    	IndexWriterConfig conf = new IndexWriterConfig(new StandardAnalyzer());
+        conf.setOpenMode(OpenMode.CREATE_OR_APPEND);//me to create sketo apla ta esvine ola
+        Directory directory = FSDirectory.open(new File(new LuceneTester().indexDir).toPath());
+        indexWriter  = new IndexWriter(directory,conf);
+      //Config gia delete/update/insert
+        
     	this.stage=stage;
     	//----------Image--------------
     	VBox imagepane=DisplayImage();
@@ -96,13 +127,15 @@ public class JavaFx extends Application{
         stage.setMinWidth(stage.getWidth());
 
     }
-    
+  
     private static void DisplayDocument() {
     	 //add List of documents(results) pane to mainpane
-        document_list = new ListView<String>();
-        document_list.setPrefSize(200,500);
-        document_list.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
-        document_list.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);//multi select
+        document_listView = new ListView<String>();
+        document_listView.setPrefSize(200,500);
+        document_listView.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+        mainpane.getChildren().add(document_listView); 
+        document_listView.setVisible(false);
+        document_listView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);//multi select
     }
     
     //To have nice control of buttons
@@ -114,7 +147,8 @@ public class JavaFx extends Application{
     	 bt.setOnAction(handler);
          return bt;
     }
-    
+
+
     private class ButtonHandler implements EventHandler<ActionEvent>{
 		@Override
 		public void handle(ActionEvent event) {
@@ -128,16 +162,34 @@ public class JavaFx extends Application{
 					LuceneTester.Update();
 				}
 				else if(source==bt_insert) {
-					
+					new InsertFx(scene).start(stage);
 				}
 				else if(source==bt_delete) {
 					try {
-						ObservableList<String> selectedItems =document_list.getSelectionModel().getSelectedItems();
+						
+						//TODO CHECKARE TA INDEXWRITERS GIA NA SVINEIS
+
+						//EDW KAI KATW ALLA
+						ObservableList<String> selectedItems =document_listView.getSelectionModel().getSelectedItems();
 						for(String lb : selectedItems) {
-							document_list.getItems().remove(lb);//from current list not from index/data
+							int delete_this_one=-1;
+							for(int i =0;i<docs.size();i++) {
+								if(lb.equals(docs.get(i).get(LuceneConstants.TITLE))) {
+									delete_this_one=i;
+									break;
+								}
+							}
+							//find the file
+							File f  = new File(docs.get(delete_this_one).get(LuceneConstants.FILE_PATH));
+							//get the path and delete it
+							indexWriter.deleteDocuments(new Term(LuceneConstants.FILE_PATH,f.getAbsolutePath()));
+							//delete the file from dir
+							f.delete();
+							//delete file frm listview
+							document_listView.getItems().remove(lb);//from current list not from index/data
 						}
 					}catch(Exception e) {
-						//min emfaniseis tpt
+						System.out.println(e);
 					}
 				}
 			}catch(Exception e) {
@@ -149,19 +201,17 @@ public class JavaFx extends Application{
     public static class MouseClicked implements EventHandler<MouseEvent>{
 
 		@Override
-		public void handle(MouseEvent event) {
-			Object source = event.getSource();
-			
+		public void handle(MouseEvent event) {			
 			//Double click
 			if(event.getClickCount()==2) {
 				for(int i=0;i<docs.size();i++) {
+					
 					//event.getTargert ->ayto poy patithike an periexei to titlo toy doc
 					if(event.getTarget().toString().contains(docs.get(i).get(LuceneConstants.TITLE))) {
 						ReadTheDoc rtd = new ReadTheDoc(docs.get(i),scene);
 						try {
 							rtd.start(stage);
 						} catch (Exception e) {
-							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
 						break;
@@ -203,7 +253,7 @@ public class JavaFx extends Application{
         
     }
     
-    private static TextField DisplaySearchBar() {
+    private static TextField DisplaySearchBar() throws IOException, ParseException{
     	//Search Bar
     	search = new TextField();
         search.setPromptText("Search here..");
@@ -214,20 +264,34 @@ public class JavaFx extends Application{
         
         search.setAlignment(Pos.BOTTOM_CENTER);
         VBox.setVgrow(search, Priority.ALWAYS);
+        search.setOnKeyPressed( event -> {
+        	  if( event.getCode() == KeyCode.ENTER ) {
+        		  try {
+					DoQuery();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (ParseException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+        		  DisplayDoc();
+        	  }
+        	} );
         
         return search;
     }
     
      
     private static void DisplayDoc() {
-    	document_list.getItems().clear(); //clear the previous list
+    	document_listView.getItems().clear(); //clear the previous list
     	docs.forEach((doc)-> {
-    		document_list.getItems().add(doc.get(LuceneConstants.TITLE));
+    		document_listView.getItems().add(doc.get(LuceneConstants.TITLE));
     	});
     	MouseClicked mc = new MouseClicked();
-    	document_list.setOnMouseClicked(mc);
-
-    	mainpane.getChildren().add(document_list); 
+    	document_listView.setOnMouseClicked(mc);
+    	document_listView.setVisible(true);
+    	
     	stage.setHeight(850);//make the window bigger for the results
     }
     

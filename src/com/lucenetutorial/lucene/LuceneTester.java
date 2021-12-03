@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 
 import org.apache.lucene.document.Document;
@@ -14,8 +15,8 @@ import org.apache.lucene.search.TopDocs;
 
 public class LuceneTester {
 	
-	private String dataDir = "C:\\Users\\Vasilis\\eclipse-workspace\\LuceneProject1\\Data\\Demo";
-	private String indexDir = "C:\\Users\\Vasilis\\eclipse-workspace\\LuceneProject1\\Index";
+	public String dataDir = "C:\\Users\\Vasilis\\eclipse-workspace\\LuceneProject1\\Data\\Demo";
+	public String indexDir = "C:\\Users\\Vasilis\\eclipse-workspace\\LuceneProject1\\Index";
 //	String dataDir = "C:\\Users\\Vasilis\\eclipse-workspace\\LuceneProject1\\Data\\Reuters_articles";
 	private Indexer indexer;
 	private Searcher searcher;
@@ -52,14 +53,14 @@ public class LuceneTester {
 		}
 
 		//Search
-		public void search(String searchQuery) throws IOException, ParseException {
-			searcher = new Searcher(indexDir);
+		public void search(String searchQuery,String flag_of_query) throws IOException, ParseException {
+			searcher = new Searcher(indexDir,flag_of_query);
 			long startTime = System.currentTimeMillis();
 			ArrayList<TopDocs> hits = searcher.search(searchQuery);
 			long endTime = System.currentTimeMillis();
 			
-			
 			ArrayList<Document> doc_arr = new ArrayList<Document>(); //Arraylist gia na pernaw ta docs kai na ta emfanizw
+			ArrayList<ScoreDoc> scores = new ArrayList<>();
 			int x=0;//just to see how many i found
 			for(TopDocs hit : hits) {
 				switch(x) {
@@ -80,14 +81,26 @@ public class LuceneTester {
 				}
 				x++;
 				
+				//μπαινουν ολα 2 φορες με αυτο, αν βαλουμε ενα constant Που να τα εχει ολα μεσα
+//				for(ScoreDoc scoreDoc : hit.scoreDocs) {
+//					scores.add(scoreDoc);	
+//				}
+				
 				for(ScoreDoc scoreDoc : hit.scoreDocs) {
+					System.out.println(scoreDoc.score);
 					Document doc = searcher.getDocument(scoreDoc);
 					doc_arr.add(doc);//add docs into arraylist
 					FormatofDoc(doc);
 				}
 			}
-			
-			JavaFx.getDoc_arr(doc_arr);
+		
+//			Collections.sort(scores, new DocComparator());
+//			
+//			for(ScoreDoc scoreDoc : scores) {
+//				System.out.println(scoreDoc.score+ " doc:"+searcher.getDocument(scoreDoc).get(LuceneConstants.TITLE));
+//			}
+//			
+			JavaFx.setDoc_arr(doc_arr);
 			searcher.close();
 		}
 		
@@ -114,6 +127,21 @@ public class LuceneTester {
 			    .forEach(File::delete);
 		}
 		
+		class DocComparator implements Comparator<ScoreDoc> {
+			  
+		    // override the compare() method
+		    public int compare(ScoreDoc d1, ScoreDoc d2)
+		    {
+		    	System.out.println("d1score="+d1.score+" d2score:"+d2.score);
+		        if ( d1.score == d2.score)
+		            return 0;
+		        else if (d1.score < d2.score)
+		            return 1;
+		        else
+		            return -1;
+		    }
+
+		}
 		//Update and makes a new Index
 		public static void Update() throws IOException {
 			File index = new File("C:\\Users\\Vasilis\\eclipse-workspace\\LuceneProject1\\Index\\");

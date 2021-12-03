@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-
 import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.PhraseQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
@@ -20,48 +20,64 @@ import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
 
 public class Searcher {
-	IndexSearcher indexSearcher;
-	Directory indexDirectory;
-	IndexReader indexReader;
-	QueryParser queryParserTitle,queryParserBody,queryParserPeople,queryParserPlace;
+	private IndexSearcher indexSearcher;
+	private Directory indexDirectory;
+	private IndexReader indexReader;
+	private String flag_of_query;
+	private Query query;
 
-	Query query;
-
-	public Searcher(String indexDirectoryPath) throws IOException {
+	public Searcher(String indexDirectoryPath,String flag_of_query) throws IOException {
 		Path indexPath = Paths.get(indexDirectoryPath);
 		indexDirectory = FSDirectory.open(indexPath);
 		indexReader = DirectoryReader.open(indexDirectory);
 		indexSearcher = new IndexSearcher(indexReader);
 		//edw toy les poy na kanei anazitisi
+		this.flag_of_query=flag_of_query;
 		
-		queryParserTitle = new QueryParser(LuceneConstants.TITLEINDEX, new StandardAnalyzer());
-		queryParserBody = new QueryParser(LuceneConstants.BODYINDEX, new StandardAnalyzer());
-		queryParserPeople = new QueryParser(LuceneConstants.PEOPLEINDEX, new StandardAnalyzer());
-		queryParserPlace = new QueryParser(LuceneConstants.PLACEINDEX, new StandardAnalyzer());
 	}
 	
 	public ArrayList<TopDocs> search(String searchQuery) throws IOException, ParseException {
 		ArrayList<TopDocs> hits = new ArrayList<TopDocs>();
+		//kanonikopoisi
+		searchQuery=searchQuery.toLowerCase();
 		//kathe fora anazitw se diaforetiko pedio
-		
-		query = queryParserTitle.parse(searchQuery);
-		TopDocs hitsTitle = indexSearcher.search(query, LuceneConstants.MAX_SEARCH);
-		 
-		query = queryParserBody.parse(searchQuery);
-		TopDocs hitsBody= indexSearcher.search(query, LuceneConstants.MAX_SEARCH);
-		 
-		query = queryParserPeople.parse(searchQuery);
-		TopDocs hitsPeople = indexSearcher.search(query, LuceneConstants.MAX_SEARCH);
-		 
-		query = queryParserPlace.parse(searchQuery);
-		TopDocs hitsPlace= indexSearcher.search(query, LuceneConstants.MAX_SEARCH);
-
-		
-		//add topdocs into arraylist
-		hits.add(hitsTitle);hits.add(hitsPlace);
-		hits.add(hitsPeople);hits.add(hitsBody);
-		
-		return hits;
+		switch(flag_of_query) {
+		case "phrase":
+			searchQuery=searchQuery.replace("\"","");//svinw ta aftakia gia na doylepsei
+			PhraseQuery phquery = new PhraseQuery(LuceneConstants.TITLE,searchQuery);
+			hits.add(indexSearcher.search(phquery, LuceneConstants.MAX_SEARCH));
+			phquery = new PhraseQuery(LuceneConstants.BODY,searchQuery);
+			hits.add(indexSearcher.search(phquery, LuceneConstants.MAX_SEARCH));
+			return hits;
+		case "boolean":
+			//TODO KANE AYTO
+//			BooleanQuery bl = new BooleanQuery(searchQuery,BooleanClause.Occur.MUST);
+			return hits;
+		case "query":
+			//Create The Parsers
+			QueryParser queryParserTitle = new QueryParser(LuceneConstants.TITLEINDEX, new StandardAnalyzer());
+			QueryParser queryParserBody = new QueryParser(LuceneConstants.BODYINDEX, new StandardAnalyzer());
+			QueryParser queryParserPeople = new QueryParser(LuceneConstants.PEOPLEINDEX, new StandardAnalyzer());
+			QueryParser queryParserPlace = new QueryParser(LuceneConstants.PLACEINDEX, new StandardAnalyzer());
+			
+			query = queryParserTitle.parse(searchQuery);
+			TopDocs hitsTitle = indexSearcher.search(query, LuceneConstants.MAX_SEARCH);
+			query = queryParserBody.parse(searchQuery);
+			TopDocs hitsBody= indexSearcher.search(query, LuceneConstants.MAX_SEARCH);
+			query = queryParserPeople.parse(searchQuery);
+			TopDocs hitsPeople = indexSearcher.search(query, LuceneConstants.MAX_SEARCH);
+			query = queryParserPlace.parse(searchQuery);
+			TopDocs hitsPlace= indexSearcher.search(query, LuceneConstants.MAX_SEARCH);
+			
+			//add topdocs into arraylist
+			hits.add(hitsTitle);hits.add(hitsPlace);
+			hits.add(hitsPeople);hits.add(hitsBody);
+			return hits;
+		case "else":
+			
+			break;
+		}	
+		return null;
 	}
 
 	public Document getDocument(ScoreDoc scoreDoc) throws CorruptIndexException, IOException {
