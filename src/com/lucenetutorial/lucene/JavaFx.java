@@ -5,7 +5,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.regex.Pattern;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -15,8 +14,6 @@ import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.ParseException;
-import org.apache.lucene.queryparser.classic.QueryParser;
-import org.apache.lucene.search.Query;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import javafx.application.Application;
@@ -48,8 +45,6 @@ public class JavaFx extends Application{
 	private static ListView<String> document_listView;
 	private static Stage stage;
 	private static Scene scene;
-	private IndexWriter indexWriter;
-
 	
 	public static void DoQuery() throws IOException, ParseException {
 		String query = search.getText();
@@ -57,16 +52,19 @@ public class JavaFx extends Application{
 			//title:Do it right psaxnei mono ston titlo me ayto
 			//prashes
 			if(Pattern.compile("\"[^\\r\\n\\t\\f\\v]+\"").matcher(query).matches()) {
-				new LuceneTester().search(query,"phrase");
+				new LuceneMain().search(query,"phrase");
 			}
 			//Logical queries
-			else if(Pattern.compile("[a-zA-Z0-9_!@#$%^&*()]+ (AND|OR|NOT) [a-zA-Z0-9_!@#$%^&*()]++").matcher(query).matches()) {
-				new LuceneTester().search(query,"boolean");
+			else if(Pattern.compile("([a-zA-Z0-9_!@#$%^&*() ]+(AND|OR|&&|\\|\\|)?[a-zA-Z0-9_!@#$%^&*() ]+)").matcher(query).matches()) {
+				new LuceneMain().search(query,"boolean");
+			}
+			else if(Pattern.compile("NOT [a-zA-Z0-9_!@#$%^&*() ]").matcher(query).matches()) {
+				new LuceneMain().search(query,"boolean");
 			}
 			else if(!query.isEmpty())
 			{
 				query=new Indexer().stemmerStopWords(query);
-				new LuceneTester().search(query,"query");
+				new LuceneMain().search(query,"query");
 			}
 		} catch (ParseException e) {
 			e.printStackTrace();
@@ -82,13 +80,6 @@ public class JavaFx extends Application{
 	
     @Override
     public void start(Stage stage) throws IOException, ParseException { 
-    			
-    	//Config gia delete/update/insert
-    	IndexWriterConfig conf = new IndexWriterConfig(new StandardAnalyzer());
-        conf.setOpenMode(OpenMode.CREATE_OR_APPEND);//me to create sketo apla ta esvine ola
-        Directory directory = FSDirectory.open(new File(new LuceneTester().indexDir).toPath());
-        indexWriter  = new IndexWriter(directory,conf);
-      //Config gia delete/update/insert
         
     	this.stage=stage;
     	//----------Image--------------
@@ -98,11 +89,10 @@ public class JavaFx extends Application{
         
         //---------Buttons----------
         bt_search =ButtonForm("Search");
-        bt_update =ButtonForm("Update");
         bt_delete =ButtonForm("Delete");
         bt_insert =ButtonForm("Insert");
       
-        HBox buttons = new HBox(bt_search,bt_update,bt_delete,bt_insert);
+        HBox buttons = new HBox(bt_search,bt_delete,bt_insert);
         buttons.setPadding(new Insets(0,50,0,50));
         buttons.setSpacing(15);  
         HBox.setHgrow(buttons, Priority.ALWAYS);
@@ -148,7 +138,6 @@ public class JavaFx extends Application{
          return bt;
     }
 
-
     private class ButtonHandler implements EventHandler<ActionEvent>{
 		@Override
 		public void handle(ActionEvent event) {
@@ -157,9 +146,6 @@ public class JavaFx extends Application{
 				if(source == bt_search) {
 					DoQuery();
 					DisplayDoc();
-				}
-				else if(source == bt_update) {
-					LuceneTester.Update();
 				}
 				else if(source==bt_insert) {
 					new InsertFx(scene).start(stage);
@@ -180,6 +166,14 @@ public class JavaFx extends Application{
 								}
 							}
 							//find the file
+							
+					    	//Config gia delete/update/insert
+					    	IndexWriterConfig conf = new IndexWriterConfig(new StandardAnalyzer());
+					        conf.setOpenMode(OpenMode.CREATE_OR_APPEND);//me to create sketo apla ta esvine ola
+					        Directory directory = FSDirectory.open(new File(new LuceneMain().indexDir).toPath());
+					        IndexWriter indexWriter  = new IndexWriter(directory,conf);
+					        //Config gia delete/update/insert
+					        
 							File f  = new File(docs.get(delete_this_one).get(LuceneConstants.FILE_PATH));
 							//get the path and delete it
 							indexWriter.deleteDocuments(new Term(LuceneConstants.FILE_PATH,f.getAbsolutePath()));
@@ -187,6 +181,8 @@ public class JavaFx extends Application{
 							f.delete();
 							//delete file frm listview
 							document_listView.getItems().remove(lb);//from current list not from index/data
+							indexWriter.close();
+							directory.close();
 						}
 					}catch(Exception e) {
 						System.out.println(e);

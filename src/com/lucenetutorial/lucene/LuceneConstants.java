@@ -8,9 +8,4 @@ public class LuceneConstants {
 
 	public static final String TITLE="title";
 	public static final String BODY="body";
-	
-	public static final String PLACEINDEX="placeindex";
-	public static final String TITLEINDEX="titleindex";
-	public static final String BODYINDEX="bodyindex";
-	public static final String PEOPLEINDEX="peopleindex";
 }

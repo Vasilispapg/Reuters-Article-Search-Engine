@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.nio.file.Files;
 import java.util.Optional;
 import java.util.Random;
 
@@ -89,13 +88,15 @@ public class InsertFx {
 		HBox hb = new HBox(label,textfield);
 		return hb;
 	}
+	
+	//to pws tha fainontai ta koympia kai ti tha kanoyn
 	private Button ButtonForm(String name,Stage stage) {
 		Button bt;
 		if(name.equals("Back")) {
 			ImageView img = new ImageView(new Image(new File("media/back.png").getAbsolutePath()));
 		 	bt = new Button(name,img); 
 	    	 bt.setOnAction((e)->{
-	 			if(flag_big_screen) {
+	 			if(flag_big_screen) { //se periptwsi poy itan megali i othoni prin na jana ginei opws itan
 					stage.setHeight(850);
 					stage.setWidth(616);
 				}
@@ -109,12 +110,15 @@ public class InsertFx {
 				String people="<PEOPLE>"+people_tf.getText()+"</PEOPLE>";
 				String places="<PLACES>"+places_tf.getText()+"</PLACES>";
 				String body="<BODY>"+body_ta.getText()+"</BODY>";
+				//takes ta values
+				
+				//generates tha new file
 				int generateName= new Random().nextInt();
 				int maxValue=5000000;
-				File f =new File(new LuceneTester().dataDir+"\\Article"+generateName+".txt");
+				File f =new File(new LuceneMain().dataDir+"\\Article"+generateName+".txt");
 				do {
 					generateName= new Random().nextInt(maxValue);
-					f=new File(new LuceneTester().dataDir+"\\Article"+generateName+".txt");
+					f=new File(new LuceneMain().dataDir+"\\Article"+generateName+".txt");
 				}while(f.exists());//se periptwsi poy yparxei to arxeio	
 				try {
 					//create File
@@ -131,6 +135,7 @@ public class InsertFx {
 		}
 	 	bt.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
 	 	bt.setPrefSize(30, 30);
+	 	//sets the button
          return bt;
     }
 	
@@ -156,7 +161,8 @@ public class InsertFx {
 		}
 	}
 	
-	private void AlertDialog(String name,Stage stage) {
+	private void AlertDialog(String name,Stage stage) throws IOException {
+		//create a dialog to continue adding file or finish
 		Alert alert = new Alert(AlertType.CONFIRMATION);
 		alert.setTitle("Successful");
 		alert.setHeaderText("The file "+name+" created successfully!");
@@ -179,6 +185,7 @@ public class InsertFx {
 				stage.setHeight(850);
 				stage.setWidth(616);
 			}
+			LuceneMain.Update();
 			stage.setScene(scene);
 		}
 	}

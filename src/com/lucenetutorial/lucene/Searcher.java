@@ -4,6 +4,9 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import org.apache.lucene.document.Document;
+import org.apache.lucene.search.BooleanClause;
+import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.PhraseQuery;
 import org.apache.lucene.search.Query;
@@ -12,7 +15,6 @@ import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
-import org.apache.lucene.document.Document;
 import org.apache.lucene.index.CorruptIndexException;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
@@ -51,27 +53,19 @@ public class Searcher {
 			return hits;
 		case "boolean":
 			//TODO KANE AYTO
-//			BooleanQuery bl = new BooleanQuery(searchQuery,BooleanClause.Occur.MUST);
+			BooleanQuery.Builder booleanQuery = new BooleanQuery.Builder();
+			Query q = new QueryParser(LuceneConstants.CONTENTS, new StandardAnalyzer()).parse(searchQuery) ;
+			booleanQuery.add(q,BooleanClause.Occur.MUST);
+			hits.add(indexSearcher.search(booleanQuery.build(),10));  //den eimai sigoyros gia ayto 
 			return hits;
 		case "query":
 			//Create The Parsers
-			QueryParser queryParserTitle = new QueryParser(LuceneConstants.TITLEINDEX, new StandardAnalyzer());
-			QueryParser queryParserBody = new QueryParser(LuceneConstants.BODYINDEX, new StandardAnalyzer());
-			QueryParser queryParserPeople = new QueryParser(LuceneConstants.PEOPLEINDEX, new StandardAnalyzer());
-			QueryParser queryParserPlace = new QueryParser(LuceneConstants.PLACEINDEX, new StandardAnalyzer());
-			
-			query = queryParserTitle.parse(searchQuery);
+			QueryParser queryParser = new QueryParser(LuceneConstants.CONTENTS, new StandardAnalyzer());
+			query = queryParser.parse(searchQuery);
 			TopDocs hitsTitle = indexSearcher.search(query, LuceneConstants.MAX_SEARCH);
-			query = queryParserBody.parse(searchQuery);
-			TopDocs hitsBody= indexSearcher.search(query, LuceneConstants.MAX_SEARCH);
-			query = queryParserPeople.parse(searchQuery);
-			TopDocs hitsPeople = indexSearcher.search(query, LuceneConstants.MAX_SEARCH);
-			query = queryParserPlace.parse(searchQuery);
-			TopDocs hitsPlace= indexSearcher.search(query, LuceneConstants.MAX_SEARCH);
 			
 			//add topdocs into arraylist
-			hits.add(hitsTitle);hits.add(hitsPlace);
-			hits.add(hitsPeople);hits.add(hitsBody);
+			hits.add(hitsTitle);
 			return hits;
 		case "else":
 			

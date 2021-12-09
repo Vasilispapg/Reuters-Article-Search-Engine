@@ -21,37 +21,33 @@ import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 
-/*
- apache-lucene-snowball jar
-https://stackoverflow.com/questions/28083377/built-in-porter-stemmer-in-java-opennlp-toolkit
-http://www.java2s.com/Code/Jar/a/Downloadapachelucenesnowballjar.html
-*/
-
 public class Indexer {
 
  private IndexWriter writer;
-//evretiria  dimiourgia / enhmerwsh
- Analyzer analyzer = new StandardAnalyzer();
+ private Directory indexDirectory;
+ IndexWriterConfig config ;
  
- 
- 	public Indexer() {
- 		
- 	};
+ 	public Indexer() {}
+ 	
 	public Indexer(String indexDirectoryPath) throws IOException {
 		//this directory will contain the indexes
 		Path indexPath = Paths.get(indexDirectoryPath);
 		if(!Files.exists(indexPath)) {
 			Files.createDirectory(indexPath);
 		}
-		//Path indexPath = Files.createTempDirectory(indexDirectoryPath);
-		Directory indexDirectory = FSDirectory.open(indexPath);
+		indexDirectory = FSDirectory.open(indexPath);
 		//create the indexer
-		IndexWriterConfig config = new IndexWriterConfig(new StandardAnalyzer());
-		writer = new IndexWriter(indexDirectory, config);
+		IndexWriterConfig config = new IndexWriterConfig(new StandardAnalyzer()); 
+		try {
+			writer = new IndexWriter(indexDirectory, config);
+		}catch(Exception e) {
+			System.out.println(e);
+		}
 	}
  
  public void close() throws CorruptIndexException, IOException {
 	 writer.close();
+	 indexDirectory.close();
  }
  
  private Document getDocument(File file) throws IOException {
@@ -69,7 +65,6 @@ public class Indexer {
 	 do {
 		switch(count){
 			case 0: 
-				
 				if(currentLine.contains("</PLACES>"))count++;
 				places = places.concat(currentLine);
 			break;
@@ -96,32 +91,17 @@ public class Indexer {
 	 bodyindex = bodyindex.toLowerCase();
 	 people=people.toLowerCase();
 	 places=places.toLowerCase();
-	 //9711 KAI 9776 EINAI IDIA, KAI ALLA POLLA
-
 	 
-	  	/* In Lucene, they are different, even it's not looks so obvious. A string is a single unit that 
-	  	not supposed to be separated, analyzed. For example, the id, email, url, date, etc.
-	  	The string itself is a term.
-		Text is content, article, post, document and anything that may read by human. 
-		This is the thing you want to index and search. 
-		It should be analyzed, indexed and optionally stored. It's very sensible to encapsulate 
-		all these properties in to an abstraction, this is what TextField for, a sugar class 
-	   */
+	 String all_contents= titleindex+" "+bodyindex+" "+places+" "+people;
+	 Field allContents= new Field(LuceneConstants.CONTENTS, all_contents,TextField.TYPE_STORED);;
 	 Field contentFieldTitle = new Field(LuceneConstants.TITLE, title,TextField.TYPE_STORED);
 	 Field contentFieldBody = new Field(LuceneConstants.BODY, body,TextField.TYPE_STORED);
-	 Field contentFieldPlacesIndex = new Field(LuceneConstants.PLACEINDEX, places,TextField.TYPE_STORED);
-	 Field contentFieldPeopleIndex = new Field(LuceneConstants.PEOPLEINDEX, people,StringField.TYPE_STORED);
-	 Field contentFieldTitleIndex = new Field(LuceneConstants.TITLEINDEX, titleindex,TextField.TYPE_STORED);
-	 Field contentFieldBodyIndex = new Field(LuceneConstants.BODYINDEX, bodyindex,TextField.TYPE_STORED);
 	 //index file name
 	 Field fileNameField = new Field(LuceneConstants.FILE_NAME, file.getName(),StringField.TYPE_STORED);
 	 //index file path
 	 Field filePathField = new Field(LuceneConstants.FILE_PATH,file.getCanonicalPath(), StringField.TYPE_STORED);
 
-	 document.add(contentFieldPlacesIndex);
-	 document.add(contentFieldPeopleIndex);
-	 document.add(contentFieldTitleIndex);
-	 document.add(contentFieldBodyIndex);
+	 document.add(allContents);
 	 document.add(contentFieldTitle);
 	 document.add(contentFieldBody);
 	 document.add(fileNameField);
@@ -140,23 +120,24 @@ public class Indexer {
 	 StringBuffer sb = new StringBuffer();
 	 StringBuffer words = new StringBuffer();
 	
-	 for(String s_splited : splited_string) {
-		 boolean flag=true;
-			 for(String s_stop : stopword_list) {
-				 if(s_splited.toLowerCase().equals(s_stop)) {
-					flag=false;
+	 for(String s_splited : splited_string) {//the string splited in spaces
+		 boolean flag=true;//theloyme panta na vazoyme tin leji ektos an yparxei
+			 for(String s_stop : stopword_list) {//psaxnoyme sto lejiko
+				 if(s_splited.toLowerCase().equals(s_stop)) {//an to vrei
+					flag=false;//den tin vazei kai termatizei
 					break;
 				 }
 			 }
 			 if(flag) {
 				 sb.append(s_splited);
-				 sb.append(" ");
+				 sb.append(" ");//vazoyme to keno anamesa se kathe leji
 			 }
 		 }
 	 return removeSpaces(sb.toString());
  }
  
  //SVINOYME TA TAGS
+ //ta thelw static giati kati mporei na synexizete gia panw apo 2 grammes
  private static boolean flagtag=true;
  private String removeTags(String s) {
 
@@ -183,17 +164,17 @@ public class Indexer {
 	 String[] s_splited=s.split("");
 	 StringBuffer sb = new StringBuffer();
 	 
-	 for(int i =0;i<s_splited.length;i++) {
+	 for(int i =0;i<s_splited.length;i++) {//pairnoyme tis lejeis
 		 if(i+1<s_splited.length-1) {
-			 if(s_splited[i].equals(" ") && s_splited[i+1].equals(" ")){
+			 if(s_splited[i].equals(" ") && s_splited[i+1].equals(" ")){ //an vreis se 2 synexomenes theseis keno gine true
 				 flagspaces=true;
 			 }
-			 else if(Pattern.compile("[a-zA-Z0-9_*&%$#@!)(]").matcher(s_splited[i]).find()) {
-				 flagspaces=false;
+			 else if(Pattern.compile("[a-zA-Z0-9_*&%$#@!)(]").matcher(s_splited[i]).find()) { //den jerw an ayto xreiazetai
+				 flagspaces=false; //an vrei leji
 			 }
 		 }
-		 if(!flagspaces) {
-			 sb.append(s_splited[i]);//an den vrei 2 dn ta vazei
+		 if(!flagspaces) { //an den vrei 2 dn ta vazei sto sb (buffer)
+			 sb.append(s_splited[i]);
 		 }
 	 }
 	 return sb.toString();
@@ -205,6 +186,7 @@ public class Indexer {
 	 if(document!=null)
 		 writer.addDocument(document);
  }
+ 
  public int createIndex(String dataDirPath, FileFilter filter) throws IOException {
 	 //get all files in the data directory
 	 File[] files = new File(dataDirPath).listFiles();
