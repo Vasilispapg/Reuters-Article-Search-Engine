@@ -35,7 +35,7 @@ public class ReadTheDoc extends Application{
 	}
 
 	 private Button ButtonForm(String name) {
-		 ImageView back_img = new ImageView(new Image(new File("media/back.png").getAbsolutePath()));
+		 ImageView back_img = new ImageView(new Image(new File("/Users/macbookpro2017/eclipse-workspace/NotGoogle/media/back.png").getAbsolutePath()));
     	 Button bt = new Button(name,back_img); 
     	 bt.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
     	 bt.setPrefSize(30, 30);
@@ -43,7 +43,6 @@ public class ReadTheDoc extends Application{
     		 stage.setScene(scene);
     	 });
          return bt;
-//		 return new Button();
     }
 	 
 	@Override
@@ -85,7 +84,7 @@ public class ReadTheDoc extends Application{
 	    stage.show();
 	    body.setWrappingWidth(stage.getWidth()-70);
 	    stage.setMinHeight(stage.getHeight());
-	    stage.getIcons().add(new Image("file:media//NotGoogle-icon.jpg"));
+	    stage.getIcons().add(new Image("file:/Users/macbookpro2017/eclipse-workspace/NotGoogle/media/NotGoogle-icon.jpg"));
 	    stage.setMinWidth(stage.getWidth());
 	}
 

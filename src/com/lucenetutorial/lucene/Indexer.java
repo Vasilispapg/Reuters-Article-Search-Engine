@@ -75,12 +75,10 @@ public class Indexer {
 			case 2:	
 				if(currentLine.contains("</TITLE>"))count++;
 				title = title.concat(removeTags(currentLine));
-				titleindex=stemmerStopWords(title);
 			break;
 			case 3: 
 				if(currentLine.contains("</BODY>"))count++;
 				body = body.concat(removeTags(currentLine));
-				bodyindex=stemmerStopWords(body);
 			break;
 		}
 			currentLine = br.readLine();
@@ -93,6 +91,7 @@ public class Indexer {
 	 places=places.toLowerCase();
 	 
 	 String all_contents= titleindex+" "+bodyindex+" "+places+" "+people;
+	 all_contents=stemmerStopWords(all_contents);
 	 Field allContents= new Field(LuceneConstants.CONTENTS, all_contents,TextField.TYPE_STORED);;
 	 Field contentFieldTitle = new Field(LuceneConstants.TITLE, title,TextField.TYPE_STORED);
 	 Field contentFieldBody = new Field(LuceneConstants.BODY, body,TextField.TYPE_STORED);
