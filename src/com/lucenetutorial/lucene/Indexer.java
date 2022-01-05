@@ -89,9 +89,12 @@ public class Indexer {
 	 bodyindex = bodyindex.toLowerCase();
 	 people=people.toLowerCase();
 	 places=places.toLowerCase();
-	 
 	 String all_contents= titleindex+" "+bodyindex+" "+places+" "+people;
 	 all_contents=stemmerStopWords(all_contents);
+	 
+	 Field contentFieldPeople = new Field(LuceneConstants.PEOPLEINDEX, people,TextField.TYPE_STORED);
+	 Field contentFieldPlace = new Field(LuceneConstants.PLACEINDEX, places,TextField.TYPE_STORED);
+	 
 	 Field allContents= new Field(LuceneConstants.CONTENTS, all_contents,TextField.TYPE_STORED);;
 	 Field contentFieldTitle = new Field(LuceneConstants.TITLE, title,TextField.TYPE_STORED);
 	 Field contentFieldBody = new Field(LuceneConstants.BODY, body,TextField.TYPE_STORED);
@@ -100,9 +103,13 @@ public class Indexer {
 	 //index file path
 	 Field filePathField = new Field(LuceneConstants.FILE_PATH,file.getCanonicalPath(), StringField.TYPE_STORED);
 
-	 document.add(allContents);
+	 document.add(contentFieldPeople);
+	 document.add(contentFieldPlace);
+	 
 	 document.add(contentFieldTitle);
 	 document.add(contentFieldBody);
+	 
+	 document.add(allContents);
 	 document.add(fileNameField);
 	 document.add(filePathField);
 	 

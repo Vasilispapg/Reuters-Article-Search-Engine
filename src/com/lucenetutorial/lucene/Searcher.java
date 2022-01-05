@@ -27,14 +27,17 @@ public class Searcher {
 	private IndexReader indexReader;
 	private String flag_of_query;
 	private Query query;
+	private int type;
 
-	public Searcher(String indexDirectoryPath,String flag_of_query) throws IOException {
+	public Searcher(String indexDirectoryPath,String flag_of_query,int type) throws IOException {
 		Path indexPath = Paths.get(indexDirectoryPath);
 		indexDirectory = FSDirectory.open(indexPath);
 		indexReader = DirectoryReader.open(indexDirectory);
 		indexSearcher = new IndexSearcher(indexReader);
 		//edw toy les poy na kanei anazitisi
 		this.flag_of_query=flag_of_query;
+		
+		this.type=type;
 		
 	}
 	
@@ -46,28 +49,60 @@ public class Searcher {
 		switch(flag_of_query) {
 		case "phrase":
 			searchQuery=searchQuery.replace("\"","");//svinw ta aftakia gia na doylepsei
-			PhraseQuery phquery = new PhraseQuery(LuceneConstants.TITLE,searchQuery);
-			hits.add(indexSearcher.search(phquery, LuceneConstants.MAX_SEARCH));
-			phquery = new PhraseQuery(LuceneConstants.BODY,searchQuery);
-			hits.add(indexSearcher.search(phquery, LuceneConstants.MAX_SEARCH));
+			switch(type) {
+			case 0:
+				PhraseQuery phquery = new PhraseQuery(LuceneConstants.TITLE,searchQuery);
+				hits.add(indexSearcher.search(phquery, LuceneConstants.MAX_SEARCH));
+				break;
+			case 1:
+				phquery = new PhraseQuery(LuceneConstants.BODY,searchQuery);
+				hits.add(indexSearcher.search(phquery, LuceneConstants.MAX_SEARCH));
+				break;
+			case 2:
+				phquery = new PhraseQuery(LuceneConstants.PEOPLEINDEX,searchQuery);
+				hits.add(indexSearcher.search(phquery, LuceneConstants.MAX_SEARCH));
+				break;
+			case 3:
+				phquery = new PhraseQuery(LuceneConstants.PLACEINDEX,searchQuery);
+				hits.add(indexSearcher.search(phquery, LuceneConstants.MAX_SEARCH));
+				break;
+			}
 			return hits;
 		case "boolean":
-			//TODO KANE AYTO
+			System.out.println("boolean");
 			BooleanQuery.Builder booleanQuery = new BooleanQuery.Builder();
-			Query q = new QueryParser(LuceneConstants.CONTENTS, new StandardAnalyzer()).parse(searchQuery) ;
+			Query q = new QueryParser(LuceneConstants.TITLE, new StandardAnalyzer()).parse(searchQuery) ;
 			booleanQuery.add(q,BooleanClause.Occur.MUST);
 			hits.add(indexSearcher.search(booleanQuery.build(),10));  //den eimai sigoyros gia ayto 
 			return hits;
 		case "query":
 			//Create The Parsers
-			QueryParser queryParser = new QueryParser(LuceneConstants.CONTENTS, new StandardAnalyzer());
-			query = queryParser.parse(searchQuery);
-			TopDocs hitsTitle = indexSearcher.search(query, LuceneConstants.MAX_SEARCH);
-			
-			//add topdocs into arraylist
-			hits.add(hitsTitle);
+			switch(type) {
+			case 0:
+				QueryParser queryParserTitle = new QueryParser(LuceneConstants.TITLE, new StandardAnalyzer());
+				query = queryParserTitle.parse(searchQuery);
+				TopDocs hitsTitle = indexSearcher.search(query, LuceneConstants.MAX_SEARCH);
+				hits.add(hitsTitle);
+				break;
+			case 1:QueryParser queryParserBody = new QueryParser(LuceneConstants.BODY, new StandardAnalyzer());
+			query = queryParserBody.parse(searchQuery);
+			TopDocs hitsBody= indexSearcher.search(query, LuceneConstants.MAX_SEARCH);
+			hits.add(hitsBody);
+				break;
+			case 2:QueryParser queryParserPeople = new QueryParser(LuceneConstants.PEOPLEINDEX, new StandardAnalyzer());
+			query = queryParserPeople.parse(searchQuery);
+			TopDocs hitsPeople = indexSearcher.search(query, LuceneConstants.MAX_SEARCH);
+			hits.add(hitsPeople);
+				break;
+			case 3:QueryParser queryParserPlace = new QueryParser(LuceneConstants.PLACEINDEX, new StandardAnalyzer());
+			query = queryParserPlace.parse(searchQuery);
+			TopDocs hitsPlace= indexSearcher.search(query, LuceneConstants.MAX_SEARCH);
+			hits.add(hitsPlace);
+				break;
+			}
 			return hits;
-		case "else":
+			
+		case "end":
 			
 			break;
 		}	

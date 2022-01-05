@@ -46,7 +46,7 @@ public class JavaFx extends Application{
 	private static VBox mainpane;
 	private Button bt_search,bt_info,bt_delete,bt_insert;
 	private static ArrayList<Document> docs;
-	private static TextField search;
+	private static TextField title,body,people,place;
 	private static ListView<String> document_listView;
 	private static Stage stage;
 	private static Scene scene;
@@ -55,25 +55,61 @@ public class JavaFx extends Application{
 	private static Text info_text;
 	
 	public static void DoQuery() throws IOException, ParseException {
-		String query = search.getText();
+		String queryTitle = title.getText(); //0
+		String queryBody = body.getText();//1
+		String queryPeople = people.getText();//2
+		String queryPlace = place.getText();//3
+		LuceneMain lm = new LuceneMain();
+		
+		//Stemming
+		if(!queryTitle.isEmpty())
+			queryTitle=new Indexer().stemmerStopWords(queryTitle);
+		if(!queryBody.isEmpty())
+			queryBody=new Indexer().stemmerStopWords(queryBody);
+
 		try {
-			query=new Indexer().stemmerStopWords(query);
-			//title:Do it right psaxnei mono ston titlo me ayto
-			//prashes
-			if(Pattern.compile("\"[^\\r\\n\\t\\f\\v]+\"").matcher(query).matches()) {
-				new LuceneMain().search(query,"phrase");
+			if(Pattern.compile("\"[^\\r\\n\\t\\f\\v]+\"").matcher(queryBody).matches()) {
+				lm.search(queryBody,"phrase",1);
 			}
+			if(Pattern.compile("\"[^\\r\\n\\t\\f\\v]+\"").matcher(queryTitle).matches()){ 
+				lm.search(queryTitle,"phrase",0);
+			}
+			
 			//Logical queries
-			else if(Pattern.compile("([a-zA-Z0-9_!@#$%^&*() ]+(AND|OR|&&|\\|\\|)?[a-zA-Z0-9_!@#$%^&*() ]+)").matcher(query).matches()) {
-				new LuceneMain().search(query,"boolean");
+			if(Pattern.compile("([a-zA-Z0-9_!@#$%^&*() ]+(AND|OR)+[a-zA-Z0-9_!@#$%^&*() ]+)").matcher(queryBody).matches() ||
+					Pattern.compile("NOT [a-zA-Z0-9_!@#$%^&*() ]").matcher(queryBody).matches()) {
+					lm.search(queryBody,"boolean",1);
 			}
-			else if(Pattern.compile("NOT [a-zA-Z0-9_!@#$%^&*() ]").matcher(query).matches()) {
-				new LuceneMain().search(query,"boolean");
+			else {
+				if(!queryBody.isEmpty())
+					lm.search(queryBody,"query",1);
 			}
-			else if(!query.isEmpty())
-			{
-				new LuceneMain().search(query,"query");
+			if(Pattern.compile("([a-zA-Z0-9_!@#$%^&*() ]+(AND|OR)+[a-zA-Z0-9_!@#$%^&*() ]+)").matcher(queryTitle).matches() ||
+					Pattern.compile("NOT [a-zA-Z0-9_!@#$%^&*() ]").matcher(queryTitle).matches()) {
+						lm.search(queryTitle,"boolean",0);
+				}
+			else {
+				if(!queryTitle.isEmpty())
+					lm.search(queryTitle,"query",0);
+
 			}
+			if(Pattern.compile("([a-zA-Z0-9_!@#$%^&*() ]+(AND|OR)+[a-zA-Z0-9_!@#$%^&*() ]+)").matcher(queryPeople).matches() ||
+				Pattern.compile("NOT [a-zA-Z0-9_!@#$%^&*() ]").matcher(queryPeople).matches()) {
+						lm.search(queryPeople,"boolean",2);
+			}
+			else {
+				if(!queryPeople.isEmpty())
+					lm.search(queryPeople,"query",2);
+			}
+			if(Pattern.compile("([a-zA-Z0-9_!@#$%^&*() ]+(AND|OR)+[a-zA-Z0-9_!@#$%^&*() ]+)").matcher(queryPlace).matches()||
+			Pattern.compile("NOT [a-zA-Z0-9_!@#$%^&*() ]").matcher(queryPlace).matches()) {
+					lm.search(queryPlace,"boolean",3);
+			}
+			else {
+				if(!queryPlace.isEmpty())
+					lm.search(queryPlace,"query",3);
+			}
+			lm.search(queryPlace,"end",-1);
 		} catch (ParseException e) {
 			e.printStackTrace();
 			}
@@ -84,6 +120,7 @@ public class JavaFx extends Application{
 	
 	public static void setDoc_arr(ArrayList<Document> docs_arr) {
 		docs=docs_arr; //takes arraylist to local variable
+		DisplayDoc();
 	}
 	
     @Override
@@ -92,8 +129,6 @@ public class JavaFx extends Application{
     	this.stage=stage;
     	//----------Image--------------
     	VBox imagepane=DisplayImage();
-    	//----------Search-------------
-    	TextField search = DisplaySearchBar();       
         
         //---------Buttons----------
         bt_search =ButtonForm("Search");
@@ -113,24 +148,25 @@ public class JavaFx extends Application{
         //information button
         info_text=displayInfo();
         
-        
-        
         //Main Pane 
-        mainpane = new VBox(imagepane,search,buttons,info_text);
+        mainpane = new VBox(imagepane);
     	mainpane.setStyle("-fx-background-color: #FFFFFF;");
         mainpane.setPadding(new Insets(0,20,0,20));
         mainpane.setSpacing(10);
-  
-        DisplayDocument();
+        
+      //----------Search-------------
+    	DisplaySearchBars(); 
+    	mainpane.getChildren().addAll(buttons,info_text);
+    	DisplayDocument();
 
         //Scene startup
-        Scene scene = new Scene(mainpane, 600, 350);
+        Scene scene = new Scene(mainpane, 600, 550);
         this.scene=scene;
         stage.setScene(scene);
         stage.setTitle("Not Google");
         stage.show();
         stage.setMinHeight(stage.getHeight());
-        stage.getIcons().add(new Image("file:media//NotGoogle-icon.jpg"));
+        //stage.getIcons().add(new Image("file:/Users/macbookpro2017/eclipse-workspace/NotGoogle/media/NotGoogle-icon.jpg"));
         stage.setMinWidth(stage.getWidth());
 
     }
@@ -189,10 +225,10 @@ public class JavaFx extends Application{
 			try {
 				if(source == bt_search) {
 					DoQuery();
-					DisplayDoc();
 				}
 				else if(source==bt_insert) {
 					new InsertFx(scene).start(stage);
+
 				}
 				else if(source==bt_info) {
 					int opacity= info_text.getOpacity()==0?1:0;
@@ -297,55 +333,52 @@ public class JavaFx extends Application{
         
     }
     
-    private static TextField DisplaySearchBar() throws IOException, ParseException{
+    private static TextField DisplaySearchBar(String prompt) throws IOException, ParseException{
     	//Search Bar
-    	search = new TextField();
-        search.setPromptText("Search here..");
-        search.setPrefSize(400, 50);
+    	TextField search = new TextField();
+        search.setPromptText(prompt);
+        search.setPrefSize(200, 50);
         search.setStyle("-fx-border-radius:10;"
         		+"-fx-background-radius: 10;"
         		+ "-fx-font-size:16pt;");
         
-        search.setAlignment(Pos.BOTTOM_CENTER);
         VBox.setVgrow(search, Priority.ALWAYS);
-        search.setOnKeyPressed( event -> {
-        	  if( event.getCode() == KeyCode.ENTER ) {
-        		  try {
-					DoQuery();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (ParseException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-        		  DisplayDoc();
-        	  }
-        	} );
         
         return search;
     }
     
+    private static void DisplaySearchBars() throws IOException, ParseException {
+    	
+    	title = DisplaySearchBar("Search Title here..");
+    	body = DisplaySearchBar("Search Body here..");
+    	place = DisplaySearchBar("Search Place here..");
+    	people = DisplaySearchBar("Search People here..");
+    	VBox searcher = new VBox(title,body,place,people);
+    	searcher.setAlignment(Pos.BOTTOM_CENTER);
+    	mainpane.getChildren().add(searcher); 
+   	
+    }
      
     private static void DisplayDoc() {
     	document_listView.getItems().clear(); //clear the previous list
     	counter_docs=0;
     	for(Document doc : docs) {
     		document_listView.getItems().add(doc.get(LuceneConstants.TITLE));
+    		System.out.println(doc.get(LuceneConstants.FILE_NAME));
     		counter_docs+=1;
     		if(!bt_limit.getValue().toString().contains("Unlimited"))//ama dn einai unlimited
     			if(counter_docs==Integer.parseInt(bt_limit.getValue().toString()))break;//an ftasoyme ton epithimito arithmo
     	}
-
     	MouseClicked mc = new MouseClicked();
     	document_listView.setOnMouseClicked(mc);
     	document_listView.setVisible(true);
     	
-    	stage.setHeight(850);//make the window bigger for the results
+    	stage.setHeight(950);//make the window bigger for the results
     }
     
     public static void main(String[] args) {
     	launch(args);
+    	
     }
 
 }

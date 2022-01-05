@@ -47,25 +47,28 @@ public class LuceneMain {
 		}
 
 		//Search
-		public void search(String searchQuery,String flag_of_query) throws IOException, ParseException {
-			searcher = new Searcher(indexDir,flag_of_query);
+		ArrayList<Document> doc_arr = new ArrayList<Document>();//Arraylist gia na pernaw ta docs kai na ta emfanizw		
+		public void search(String searchQuery,String flag_of_query,int type) throws IOException, ParseException {
+			searcher = new Searcher(indexDir,flag_of_query,type);
 			System.currentTimeMillis();
 			ArrayList<TopDocs> hits = searcher.search(searchQuery);
 			System.currentTimeMillis();
 			
-			ArrayList<Document> doc_arr = new ArrayList<Document>(); //Arraylist gia na pernaw ta docs kai na ta emfanizw		
-			
-			//vazoyme ta docs se mia arraylist gia na ta steiloyme sto javafx kai na efmanistoyn
-			for(TopDocs hit : hits) {
-				for(ScoreDoc scoreDoc : hit.scoreDocs) {
-					System.out.println(scoreDoc.score); //edw fainontai ta score
-					Document doc = searcher.getDocument(scoreDoc);
-					doc_arr.add(doc);//add docs into arraylist
-//					FormatofDoc(doc); //episis emfanizoyme tis apantiseis
-				}
+			if(flag_of_query.contains("end")) {// an teleiwse i anazitisi
+				JavaFx.setDoc_arr(doc_arr);
 			}
-			
-			JavaFx.setDoc_arr(doc_arr);//vazei tis apantiseis sto JavaFx kommati
+			else {	
+				//vazoyme ta docs se mia arraylist gia na ta steiloyme sto javafx kai na efmanistoyn
+				for(TopDocs hit : hits) {
+					for(ScoreDoc scoreDoc : hit.scoreDocs) {
+						System.out.println(scoreDoc.score); //edw fainontai ta score
+						Document doc = searcher.getDocument(scoreDoc);
+						doc_arr.add(doc);//add docs into arraylist
+						//FormatofDoc(doc); //episis emfanizoyme tis apantiseis
+					}
+				}	
+			}
+			//vazei tis apantiseis sto JavaFx kommati
 			searcher.close();
 		}
 		

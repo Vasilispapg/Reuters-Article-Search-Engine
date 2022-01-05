@@ -35,8 +35,9 @@ public class ReadTheDoc extends Application{
 	}
 
 	 private Button ButtonForm(String name) {
-		 ImageView back_img = new ImageView(new Image(new File("/Users/macbookpro2017/eclipse-workspace/NotGoogle/media/back.png").getAbsolutePath()));
-    	 Button bt = new Button(name,back_img); 
+		 //ImageView back_img = new ImageView(new Image(new File("/Users/macbookpro2017/eclipse-workspace/NotGoogle/media/back.png").getAbsolutePath()));
+    	 //Button bt = new Button(name,back_img); 
+		 Button bt = new Button(name); 
     	 bt.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
     	 bt.setPrefSize(30, 30);
     	 bt.setOnAction((e)->{

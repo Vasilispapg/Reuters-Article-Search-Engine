@@ -39,7 +39,6 @@ public class InsertFx {
 	
 	public void start(Stage stage) { 
       
-		
         //Main Pane 
         VBox mainpane = new VBox(ButtonForm("Back",stage), Sections("Title"),
         		Sections("People"),Sections("Places")
@@ -53,11 +52,11 @@ public class InsertFx {
         Scene scene = new Scene(mainpane, 600, 400);
         stage.setScene(scene);
         stage.setTitle("Not Google");
-        if(stage.getHeight()>439)flag_big_screen=true; //gia na jerei pws itan to proigoymeno parathyro
+        if(stage.getHeight()>600)flag_big_screen=true; //gia na jerei pws itan to proigoymeno parathyro
         stage.setHeight(439);
         stage.setWidth(616);
-        stage.setMaxHeight(439);
-        stage.setMaxWidth(616);
+//        stage.setMaxHeight(439);
+//        stage.setMaxWidth(616);
         stage.show();
         stage.getIcons().add(new Image("file:media//NotGoogle-icon.jpg"));
         stage.setMinWidth(stage.getWidth());
@@ -94,13 +93,18 @@ public class InsertFx {
 	private Button ButtonForm(String name,Stage stage) {
 		Button bt;
 		if(name.equals("Back")) {
-			ImageView img = new ImageView(new Image(new File("/Users/macbookpro2017/eclipse-workspace/NotGoogle/media/back.png").getAbsolutePath()));
-		 	bt = new Button(name,img); 
+			//ImageView img = new ImageView(new Image(new File("/Users/macbookpro2017/eclipse-workspace/NotGoogle/media/back.png").getAbsolutePath()));
+		 	//bt = new Button(name,img); 
+			bt=new Button(name);
 	    	 bt.setOnAction((e)->{
 	 			if(flag_big_screen) { //se periptwsi poy itan megali i othoni prin na jana ginei opws itan
 					stage.setHeight(850);
 					stage.setWidth(616);
 				}
+	 			else {
+	 				stage.setHeight(439);
+	 		        stage.setWidth(616);
+	 			}
 	    		 stage.setScene(scene);
 	    	 });
 		}
