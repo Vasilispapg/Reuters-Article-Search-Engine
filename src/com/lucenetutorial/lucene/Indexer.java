@@ -66,19 +66,19 @@ public class Indexer {
 		switch(count){
 			case 0: 
 				if(currentLine.contains("</PLACES>"))count++;
-				places = places.concat(currentLine);
+				places = places.concat(currentLine+" ");//gia tis allages grammis
 			break;
 			case 1: 
 				if(currentLine.contains("</PEOPLE>"))count++;
-				people = people.concat(currentLine);
+				people = people.concat(currentLine+" ");
 			break;
 			case 2:	
 				if(currentLine.contains("</TITLE>"))count++;
-				title = title.concat(currentLine);
+				title = title.concat(currentLine+" ");
 			break;
 			case 3: 
 				if(currentLine.contains("</BODY>"))count++;
-				body = body.concat(currentLine);
+				body = body.concat(currentLine+" ");
 			break;
 		}
 			currentLine = br.readLine();
@@ -167,26 +167,27 @@ public class Indexer {
 	 return sb.toString();
  }
 
- private boolean flagspaces=false;
- private String removeSpaces(String s) {
-	 String[] s_splited=s.split("");
-	 StringBuffer sb = new StringBuffer();
-	 
-	 for(int i =0;i<s_splited.length;i++) {//pairnoyme tis lejeis
-		 if(i+1<s_splited.length-1) {
-			 if(s_splited[i].equals(" ") && s_splited[i+1].equals(" ")){ //an vreis se 2 synexomenes theseis keno gine true
-				 flagspaces=true;
-			 }
-			 else if(Pattern.compile("[a-zA-Z0-9_*&%$#@!)(]").matcher(s_splited[i]).matches()) { //den jerw an ayto xreiazetai
-				 flagspaces=false; //an vrei leji
-			 }
-		 }
-		 if(!flagspaces) { //an den vrei 2 dn ta vazei sto sb (buffer)
-			 sb.append(s_splited[i]);
-		 }
-	 }
-	 return sb.toString();
- }
+  //SVINOYME TA DIPLA KENA META TO REMOVE TAGS
+  private boolean flagspaces=false;
+  private String removeSpaces(String s) {
+	  String[] s_splited=s.split("");
+	  StringBuffer sb = new StringBuffer();
+	  
+	  for(int i =1;i<s_splited.length+1;i++) {//pairnoyme tis lejeis
+		  if(i<s_splited.length) {
+			  if(s_splited[i-1].equals(" ") && s_splited[i].equals(" ")){ //an vreis se 2 synexomenes theseis keno gine true
+				  flagspaces=true;
+			  }
+			  else if(Pattern.compile("[a-zA-Z0-9_*&%$#@!)(]").matcher(s_splited[i]).matches()) { //den jerw an ayto xreiazetai
+				  flagspaces=false; //an vrei leji
+			  }
+		  }
+		  if(!flagspaces) { //an den vrei 2 dn ta vazei sto sb (buffer)
+			  sb.append(s_splited[i-1]);
+		  }
+	  }
+	  return sb.toString();
+  }
  
  private void indexFile(File file) throws IOException {
 	 System.out.println("Indexing "+file.getCanonicalPath());
