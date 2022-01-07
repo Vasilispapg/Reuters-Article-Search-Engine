@@ -74,19 +74,29 @@ public class Indexer {
 			break;
 			case 2:	
 				if(currentLine.contains("</TITLE>"))count++;
-				title = title.concat(removeTags(currentLine));
+				title = title.concat(currentLine);
 			break;
 			case 3: 
 				if(currentLine.contains("</BODY>"))count++;
-				body = body.concat(removeTags(currentLine));
+				body = body.concat(currentLine);
 			break;
 		}
 			currentLine = br.readLine();
 	 }while(null!=currentLine);
 	 
+	 //remove Tags
+	 places=removeTags(places);
+	 people=removeTags(people);
+	 title=removeTags(title);
+	 body=removeTags(body);
+	 
+	 //remove spaces
+	 title=removeSpaces(title);
+	 body=removeSpaces(body);
+
 	 //CASE FOLDING
-	 titleindex = titleindex.toLowerCase();
-	 bodyindex = bodyindex.toLowerCase();
+	 titleindex = title.toLowerCase();
+	 bodyindex = body.toLowerCase();
 	 people=people.toLowerCase();
 	 places=places.toLowerCase();
 	 
@@ -132,7 +142,7 @@ public class Indexer {
 				 sb.append(" ");//vazoyme to keno anamesa se kathe leji
 			 }
 		 }
-	 return removeSpaces(sb.toString());
+	 return sb.toString();
  }
  
  //SVINOYME TA TAGS
@@ -154,10 +164,9 @@ public class Indexer {
 			 sb.append(s_splited[i]);
 		 }
 	 }
-	 return removeSpaces(sb.toString());
+	 return sb.toString();
  }
 
- //SVINOYME TA DIPLA KENA AFTER TAG STEMMING
  private boolean flagspaces=false;
  private String removeSpaces(String s) {
 	 String[] s_splited=s.split("");
@@ -168,7 +177,7 @@ public class Indexer {
 			 if(s_splited[i].equals(" ") && s_splited[i+1].equals(" ")){ //an vreis se 2 synexomenes theseis keno gine true
 				 flagspaces=true;
 			 }
-			 else if(Pattern.compile("[a-zA-Z0-9_*&%$#@!)(]").matcher(s_splited[i]).find()) { //den jerw an ayto xreiazetai
+			 else if(Pattern.compile("[a-zA-Z0-9_*&%$#@!)(]").matcher(s_splited[i]).matches()) { //den jerw an ayto xreiazetai
 				 flagspaces=false; //an vrei leji
 			 }
 		 }

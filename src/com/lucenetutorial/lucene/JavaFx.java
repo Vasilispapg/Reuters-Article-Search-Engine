@@ -193,7 +193,6 @@ public class JavaFx extends Application{
 					DisplayDoc();
 				}
 				else if(source==bt_edit) {
-					System.out.println("Kati");
 					ObservableList<String> selectedItems =document_listView.getSelectionModel().getSelectedItems();
 					for(String lb:selectedItems) {
 						int edit_this_one=-1;
@@ -269,10 +268,10 @@ public class JavaFx extends Application{
 		public void handle(MouseEvent event) {			
 			//Double click
 			if(event.getClickCount()==2) {
-				for(int i=0;i<docs.size();i++) {
-					
-					//event.getTargert ->ayto poy patithike an periexei to titlo toy doc
-					if(event.getTarget().toString().contains(docs.get(i).get(LuceneConstants.TITLE))) {
+				for(int i=0;i<docs.size();i++) {//psaxnei sta docs poy epistrafikan
+					//event.getSource ->ayto poy patithike se listview
+			        ListView lb = (ListView)event.getSource();
+					if(docs.get(i).get(LuceneConstants.TITLE).contains(lb.getSelectionModel().getSelectedItem().toString())) { //pairnw to onoma
 						ReadTheDoc rtd = new ReadTheDoc(docs.get(i),scene);
 						try {
 							rtd.start(stage);
@@ -282,7 +281,6 @@ public class JavaFx extends Application{
 						break;
 					}
 				}
-				
 			}
 			
 		}
