@@ -31,6 +31,7 @@ public class InsertFx {
 	private Scene scene;
 	private TextField title_tf,people_tf,places_tf;
 	private TextArea body_ta;
+	
 	public InsertFx(Scene scene) {
 		this.scene=scene;
 		flag_big_screen=false;
@@ -93,7 +94,7 @@ public class InsertFx {
 	private Button ButtonForm(String name,Stage stage) {
 		Button bt;
 		if(name.equals("Back")) {
-			ImageView img = new ImageView(new Image(new File("media/back.png").getAbsolutePath()));
+			ImageView img = new ImageView(new Image(new File("/Users/macbookpro2017/eclipse-workspace/NotGoogle/media/back.png").getAbsolutePath()));
 		 	bt = new Button(name,img); 
 	    	 bt.setOnAction((e)->{
 	 			if(flag_big_screen) { //se periptwsi poy itan megali i othoni prin na jana ginei opws itan
@@ -115,10 +116,10 @@ public class InsertFx {
 				//generates tha new file
 				int generateName= new Random().nextInt();
 				int maxValue=5000000;
-				File f =new File(new LuceneMain().dataDir+"\\Article"+generateName+".txt");
+				File f =new File(new LuceneMain().dataDir+"/Article"+generateName+".txt");
 				do {
 					generateName= new Random().nextInt(maxValue);
-					f=new File(new LuceneMain().dataDir+"\\Article"+generateName+".txt");
+					f=new File(new LuceneMain().dataDir+"/Article"+generateName+".txt");
 				}while(f.exists());//se periptwsi poy yparxei to arxeio	
 				try {
 					//create File
@@ -139,7 +140,7 @@ public class InsertFx {
          return bt;
     }
 	
-	private void writeToFile(File f,String places,String people,String title,String body) {
+	public void writeToFile(File f,String places,String people,String title,String body) {
 		FileWriter fw;
 		try {
 			fw = new FileWriter(f.getCanonicalFile(), true);

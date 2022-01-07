@@ -17,6 +17,7 @@ import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import javafx.application.Application;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -24,6 +25,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TextField;
@@ -34,21 +36,28 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
 public class JavaFx extends Application{
 
 	private static VBox mainpane;
-	private Button bt_search,bt_update,bt_delete,bt_insert;
+	private Button bt_search,bt_info,bt_delete,bt_insert,bt_edit;
 	private static ArrayList<Document> docs;
 	private static TextField search;
 	private static ListView<String> document_listView;
 	private static Stage stage;
 	private static Scene scene;
+	private static int counter_docs =0;
+	private static ChoiceBox bt_limit;
+	private static Text info_text;
 	
 	public static void DoQuery() throws IOException, ParseException {
 		String query = search.getText();
 		try {
+			query=new Indexer().stemmerStopWords(query);
 			//title:Do it right psaxnei mono ston titlo me ayto
 			//prashes
 			if(Pattern.compile("\"[^\\r\\n\\t\\f\\v]+\"").matcher(query).matches()) {
@@ -63,7 +72,6 @@ public class JavaFx extends Application{
 			}
 			else if(!query.isEmpty())
 			{
-				query=new Indexer().stemmerStopWords(query);
 				new LuceneMain().search(query,"query");
 			}
 		} catch (ParseException e) {
@@ -91,15 +99,25 @@ public class JavaFx extends Application{
         bt_search =ButtonForm("Search");
         bt_delete =ButtonForm("Delete");
         bt_insert =ButtonForm("Insert");
+		bt_edit=ButtonForm("Edit");
+        bt_info=ButtonForm("Info");
+        
+        //LimitButton
+        bt_limit=DisplaylimitDocs();
       
-        HBox buttons = new HBox(bt_search,bt_delete,bt_insert);
+        HBox buttons = new HBox(bt_search,bt_delete,bt_insert,bt_info,bt_limit);
         buttons.setPadding(new Insets(0,50,0,50));
         buttons.setSpacing(15);  
         HBox.setHgrow(buttons, Priority.ALWAYS);
         buttons.setAlignment(Pos.BASELINE_CENTER);
         
+        //information button
+        info_text=displayInfo();
+        
+        
+        
         //Main Pane 
-        mainpane = new VBox(imagepane,search,buttons);
+        mainpane = new VBox(imagepane,search,buttons,info_text);
     	mainpane.setStyle("-fx-background-color: #FFFFFF;");
         mainpane.setPadding(new Insets(0,20,0,20));
         mainpane.setSpacing(10);
@@ -116,6 +134,33 @@ public class JavaFx extends Application{
         stage.getIcons().add(new Image("file:media//NotGoogle-icon.jpg"));
         stage.setMinWidth(stage.getWidth());
 
+    }
+    
+    private static ChoiceBox DisplaylimitDocs() {
+    	ChoiceBox<String> cb = new ChoiceBox<String>(FXCollections.observableArrayList(
+    		    "3", "9", "15","Unlimited")
+    		);
+    	cb.setValue("Unlimited");
+    	cb.setPrefSize(150, 30);
+    	cb.setOnAction((e)->{
+    		if(cb.getValue().toString().contains("Unlimited"))
+    			cb.setPrefSize(150, 30);
+    		else
+    			cb.setPrefSize(50, 30);
+    		DisplayDoc();
+    	});
+    	return cb;
+    }
+    
+    private static Text displayInfo() {
+    	Text t = new Text("There are 3 ways to search. 1)Boolean search with this example <term AND|OR term>"
+    			+ "2)Prashe search using \"terms\""
+    			+ "3)Just words");
+    	t.setFont(new Font(16));
+    	t.setFill(Color.RED);
+    	t.setOpacity(0);
+    	t.setWrappingWidth(500);
+    	return t;
     }
   
     private static void DisplayDocument() {
@@ -147,8 +192,32 @@ public class JavaFx extends Application{
 					DoQuery();
 					DisplayDoc();
 				}
+				else if(source==bt_edit) {
+					System.out.println("Kati");
+					ObservableList<String> selectedItems =document_listView.getSelectionModel().getSelectedItems();
+					for(String lb:selectedItems) {
+						int edit_this_one=-1;
+						for(int i=0;i<docs.size();i++) {
+							if(lb.equals(docs.get(i).get(LuceneConstants.TITLE))) {
+								edit_this_one=i;
+								break;
+							}
+						}
+						EditTheDoc etd = new EditTheDoc(docs.get(edit_this_one),scene);
+						try {
+							etd.start(stage);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+						break;	
+					}
+				}
 				else if(source==bt_insert) {
 					new InsertFx(scene).start(stage);
+				}
+				else if(source==bt_info) {
+					int opacity= info_text.getOpacity()==0?1:0;
+					info_text.setOpacity(opacity);
 				}
 				else if(source==bt_delete) {
 					try {
@@ -224,7 +293,7 @@ public class JavaFx extends Application{
     	//Image and Style
     	InputStream stream = null;
 		try {
-			stream = new FileInputStream("media\\NotGoogle.jpg");
+			stream = new FileInputStream("/Users/macbookpro2017/eclipse-workspace/NotGoogle/media/NotGoogle.jpg");
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
@@ -281,9 +350,14 @@ public class JavaFx extends Application{
      
     private static void DisplayDoc() {
     	document_listView.getItems().clear(); //clear the previous list
-    	docs.forEach((doc)-> {
+    	counter_docs=0;
+    	for(Document doc : docs) {
     		document_listView.getItems().add(doc.get(LuceneConstants.TITLE));
-    	});
+    		counter_docs+=1;
+    		if(!bt_limit.getValue().toString().contains("Unlimited"))//ama dn einai unlimited
+    			if(counter_docs==Integer.parseInt(bt_limit.getValue().toString()))break;//an ftasoyme ton epithimito arithmo
+    	}
+
     	MouseClicked mc = new MouseClicked();
     	document_listView.setOnMouseClicked(mc);
     	document_listView.setVisible(true);

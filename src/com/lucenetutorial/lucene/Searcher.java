@@ -54,9 +54,11 @@ public class Searcher {
 		case "boolean":
 			//TODO KANE AYTO
 			BooleanQuery.Builder booleanQuery = new BooleanQuery.Builder();
-			Query q = new QueryParser(LuceneConstants.CONTENTS, new StandardAnalyzer()).parse(searchQuery) ;
-			booleanQuery.add(q,BooleanClause.Occur.MUST);
-			hits.add(indexSearcher.search(booleanQuery.build(),10));  //den eimai sigoyros gia ayto 
+			for(String string : searchQuery.split(" ")) {
+				Query query = new QueryParser(LuceneConstants.CONTENTS, new StandardAnalyzer()).parse(string);
+				booleanQuery.add(query,BooleanClause.Occur.MUST);
+			}
+			hits.add(indexSearcher.search(booleanQuery.build(),100));  //den eimai sigoyros gia ayto 
 			return hits;
 		case "query":
 			//Create The Parsers
