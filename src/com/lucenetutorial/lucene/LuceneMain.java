@@ -14,16 +14,16 @@ import org.apache.lucene.search.TopDocs;
 
 public class LuceneMain {
 	
-//MAC
-public static String dataDir = "/Users/macbookpro2017/eclipse-workspace/NotGoogle/Data/Demo";
-//public static String dataDir = "/Users/macbookpro2017/eclipse-workspace/NotGoogle/Data/Reuters_articles";
-public static String indexDir = "/Users/macbookpro2017/eclipse-workspace/NotGoogle/Index";
+	//MAC
+	public static String dataDir = "/Users/macbookpro2017/eclipse-workspace/NotGoogle/Data/Demo";
+	//public static String dataDir = "/Users/macbookpro2017/eclipse-workspace/NotGoogle/Data/Reuters_articles";
+	public static String indexDir = "/Users/macbookpro2017/eclipse-workspace/NotGoogle/Index";
 
-//WINDOWS
-/*	//public static String dataDir = "C:\\Users\\Vasilis\\eclipse-workspace\\LuceneProject1\\Data\\Demo";
-public static String indexDir = "C:\\Users\\Vasilis\\eclipse-workspace\\LuceneProject1\\Index";
-String dataDir = "C:\\Users\\Vasilis\\eclipse-workspace\\LuceneProject1\\Data\\Reuters_articles";
-*/
+	//WINDOWS
+	/*	//public static String dataDir = "C:\\Users\\Vasilis\\eclipse-workspace\\LuceneProject1\\Data\\Demo";
+	public static String indexDir = "C:\\Users\\Vasilis\\eclipse-workspace\\LuceneProject1\\Index";
+	String dataDir = "C:\\Users\\Vasilis\\eclipse-workspace\\LuceneProject1\\Data\\Reuters_articles";
+	*/
 	private static Indexer indexer;
 	private static Searcher searcher;
 	private static String [] args_javafx;
