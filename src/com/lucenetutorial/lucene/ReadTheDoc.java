@@ -85,7 +85,7 @@ public class ReadTheDoc extends Application{
 	    stage.show();
 	    body.setWrappingWidth(stage.getWidth()-70);
 	    stage.setMinHeight(stage.getHeight());
-	    stage.getIcons().add(new Image("file:/Users/macbookpro2017/eclipse-workspace/NotGoogle/media/NotGoogle-icon.jpg"));
+	    //stage.getIcons().add(new Image("file:/Users/macbookpro2017/eclipse-workspace/NotGoogle/media/NotGoogle-icon.jpg"));
 	    stage.setMinWidth(stage.getWidth());
 	}
 

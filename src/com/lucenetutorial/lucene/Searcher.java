@@ -69,22 +69,47 @@ public class Searcher {
 			}
 			return hits;
 		case "boolean":
-			System.out.println("boolean");
 			BooleanQuery.Builder booleanQuery = new BooleanQuery.Builder();
-			Query q = new QueryParser(LuceneConstants.TITLE, new StandardAnalyzer()).parse(searchQuery) ;
-			booleanQuery.add(q,BooleanClause.Occur.MUST);
-			hits.add(indexSearcher.search(booleanQuery.build(),10));  //den eimai sigoyros gia ayto 
+			switch(type) {
+			case 0:
+				searchQuery=new Indexer().stemmerStopWords(searchQuery);//stemming the word
+				for(String string : searchQuery.split(" ")) {//for each word added in booelan builder
+					Query query = new QueryParser(LuceneConstants.TITLEINDEX, new StandardAnalyzer()).parse(string);
+					booleanQuery.add(query,BooleanClause.Occur.MUST);
+				}
+			break;
+			case 1:
+				searchQuery=new Indexer().stemmerStopWords(searchQuery);//stemming the word
+				for(String string : searchQuery.split(" ")) {
+					Query query = new QueryParser(LuceneConstants.BODYINDEX, new StandardAnalyzer()).parse(string);
+					booleanQuery.add(query,BooleanClause.Occur.MUST);
+				}
+				break;
+			case 2:
+				for(String string : searchQuery.split(" ")) {
+					Query query = new QueryParser(LuceneConstants.PEOPLEINDEX, new StandardAnalyzer()).parse(string);
+					booleanQuery.add(query,BooleanClause.Occur.MUST);
+				}
+				break;
+			case 3:
+				for(String string : searchQuery.split(" ")) {
+					Query query = new QueryParser(LuceneConstants.PLACEINDEX, new StandardAnalyzer()).parse(string);
+					booleanQuery.add(query,BooleanClause.Occur.MUST);
+				}	
+				break;
+			}
+			hits.add(indexSearcher.search(booleanQuery.build(),100));  //den eimai sigoyros gia ayto 
 			return hits;
 		case "query":
 			//Create The Parsers
 			switch(type) {
 			case 0:
-				QueryParser queryParserTitle = new QueryParser(LuceneConstants.TITLE, new StandardAnalyzer());
+				QueryParser queryParserTitle = new QueryParser(LuceneConstants.TITLEINDEX, new StandardAnalyzer());
 				query = queryParserTitle.parse(searchQuery);
 				TopDocs hitsTitle = indexSearcher.search(query, LuceneConstants.MAX_SEARCH);
 				hits.add(hitsTitle);
 				break;
-			case 1:QueryParser queryParserBody = new QueryParser(LuceneConstants.BODY, new StandardAnalyzer());
+			case 1:QueryParser queryParserBody = new QueryParser(LuceneConstants.BODYINDEX, new StandardAnalyzer());
 			query = queryParserBody.parse(searchQuery);
 			TopDocs hitsBody= indexSearcher.search(query, LuceneConstants.MAX_SEARCH);
 			hits.add(hitsBody);

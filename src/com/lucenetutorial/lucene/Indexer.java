@@ -66,54 +66,70 @@ public class Indexer {
 		switch(count){
 			case 0: 
 				if(currentLine.contains("</PLACES>"))count++;
-				places = places.concat(currentLine);
+				places = places.concat(currentLine+" ");//gia tis allages grammis
 			break;
 			case 1: 
 				if(currentLine.contains("</PEOPLE>"))count++;
-				people = people.concat(currentLine);
+				people = people.concat(currentLine+" ");
 			break;
 			case 2:	
 				if(currentLine.contains("</TITLE>"))count++;
-				title = title.concat(removeTags(currentLine));
+				title = title.concat(currentLine+" ");
 			break;
 			case 3: 
 				if(currentLine.contains("</BODY>"))count++;
-				body = body.concat(removeTags(currentLine));
+				body = body.concat(currentLine+" ");
 			break;
 		}
 			currentLine = br.readLine();
 	 }while(null!=currentLine);
 	 
+	 
+	 //remove Tags
+	 places=removeTags(places);
+	 people=removeTags(people);
+	 title=removeTags(title);
+	 body=removeTags(body);
+	 
+	 //remove spaces
+	 title=removeSpaces(title);
+	 body=removeSpaces(body);
+	 
 	 //CASE FOLDING
-	 titleindex = titleindex.toLowerCase();
-	 bodyindex = bodyindex.toLowerCase();
-	 people=people.toLowerCase();
-	 places=places.toLowerCase();
-	 String all_contents= titleindex+" "+bodyindex+" "+places+" "+people;
-	 all_contents=stemmerStopWords(all_contents);
+	 titleindex = stemmerStopWords(title.toLowerCase());
+	 bodyindex = stemmerStopWords(body.toLowerCase());
 	 
 	 Field contentFieldPeople = new Field(LuceneConstants.PEOPLEINDEX, people,TextField.TYPE_STORED);
 	 Field contentFieldPlace = new Field(LuceneConstants.PLACEINDEX, places,TextField.TYPE_STORED);
 	 
-	 Field allContents= new Field(LuceneConstants.CONTENTS, all_contents,TextField.TYPE_STORED);;
+	 //Field allContents= new Field(LuceneConstants.CONTENTS, all_contents,TextField.TYPE_STORED);;
 	 Field contentFieldTitle = new Field(LuceneConstants.TITLE, title,TextField.TYPE_STORED);
 	 Field contentFieldBody = new Field(LuceneConstants.BODY, body,TextField.TYPE_STORED);
+	 Field contentFieldTitleindex = new Field(LuceneConstants.TITLEINDEX, titleindex,TextField.TYPE_STORED);
+	 Field contentFieldBodyindex = new Field(LuceneConstants.BODYINDEX, bodyindex,TextField.TYPE_STORED);
 	 //index file name
 	 Field fileNameField = new Field(LuceneConstants.FILE_NAME, file.getName(),StringField.TYPE_STORED);
 	 //index file path
 	 Field filePathField = new Field(LuceneConstants.FILE_PATH,file.getCanonicalPath(), StringField.TYPE_STORED);
 
+	 //people and place
 	 document.add(contentFieldPeople);
 	 document.add(contentFieldPlace);
 	 
+	 //content for user
 	 document.add(contentFieldTitle);
 	 document.add(contentFieldBody);
 	 
-	 document.add(allContents);
+	 //indexed
+	 document.add(contentFieldTitleindex);
+	 document.add(contentFieldBodyindex);
+	 
+	 //document.add(allContents);
 	 document.add(fileNameField);
 	 document.add(filePathField);
 	 
-//	 LuceneTester.FormatofDoc(document);
+	 //Display documents
+	 //LuceneTester.FormatofDoc(document);
 	 
 	 br.close();
 	 }
@@ -139,7 +155,7 @@ public class Indexer {
 				 sb.append(" ");//vazoyme to keno anamesa se kathe leji
 			 }
 		 }
-	 return removeSpaces(sb.toString());
+	 return sb.toString();//removeSpaces(sb.toString());
  }
  
  //SVINOYME TA TAGS
@@ -161,26 +177,26 @@ public class Indexer {
 			 sb.append(s_splited[i]);
 		 }
 	 }
-	 return removeSpaces(sb.toString());
+	 return sb.toString();
  }
 
- //SVINOYME TA DIPLA KENA AFTER TAG STEMMING
+ //SVINOYME TA DIPLA KENA META TO REMOVE TAGS
  private boolean flagspaces=false;
  private String removeSpaces(String s) {
 	 String[] s_splited=s.split("");
 	 StringBuffer sb = new StringBuffer();
 	 
-	 for(int i =0;i<s_splited.length;i++) {//pairnoyme tis lejeis
-		 if(i+1<s_splited.length-1) {
-			 if(s_splited[i].equals(" ") && s_splited[i+1].equals(" ")){ //an vreis se 2 synexomenes theseis keno gine true
+	 for(int i =1;i<s_splited.length+1;i++) {//pairnoyme tis lejeis
+		 if(i<s_splited.length) {
+			 if(s_splited[i-1].equals(" ") && s_splited[i].equals(" ")){ //an vreis se 2 synexomenes theseis keno gine true
 				 flagspaces=true;
 			 }
-			 else if(Pattern.compile("[a-zA-Z0-9_*&%$#@!)(]").matcher(s_splited[i]).find()) { //den jerw an ayto xreiazetai
+			 else if(Pattern.compile("[a-zA-Z0-9_*&%$#@!)(]").matcher(s_splited[i]).matches()) { //den jerw an ayto xreiazetai
 				 flagspaces=false; //an vrei leji
 			 }
 		 }
 		 if(!flagspaces) { //an den vrei 2 dn ta vazei sto sb (buffer)
-			 sb.append(s_splited[i]);
+			 sb.append(s_splited[i-1]);
 		 }
 	 }
 	 return sb.toString();

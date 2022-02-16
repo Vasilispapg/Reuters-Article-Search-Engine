@@ -44,7 +44,7 @@ import javafx.stage.Stage;
 public class JavaFx extends Application{
 
 	private static VBox mainpane;
-	private Button bt_search,bt_info,bt_delete,bt_insert;
+	private Button bt_search,bt_info,bt_delete,bt_insert,bt_edit;
 	private static ArrayList<Document> docs;
 	private static TextField title,body,people,place;
 	private static ListView<String> document_listView;
@@ -59,14 +59,9 @@ public class JavaFx extends Application{
 		String queryBody = body.getText();//1
 		String queryPeople = people.getText();//2
 		String queryPlace = place.getText();//3
-		LuceneMain lm = new LuceneMain();
+		LuceneMain lm = new LuceneMain(); //for searching
 		
 		//Stemming
-		if(!queryTitle.isEmpty())
-			queryTitle=new Indexer().stemmerStopWords(queryTitle);
-		if(!queryBody.isEmpty())
-			queryBody=new Indexer().stemmerStopWords(queryBody);
-
 		try {
 			if(Pattern.compile("\"[^\\r\\n\\t\\f\\v]+\"").matcher(queryBody).matches()) {
 				lm.search(queryBody,"phrase",1);
@@ -76,24 +71,23 @@ public class JavaFx extends Application{
 			}
 			
 			//Logical queries
-			if(Pattern.compile("([a-zA-Z0-9_!@#$%^&*() ]+(AND|OR)+[a-zA-Z0-9_!@#$%^&*() ]+)").matcher(queryBody).matches() ||
+			if(Pattern.compile("([a-zA-Z0-9_!@#$%^&*() ]+ (AND|OR)+ [a-zA-Z0-9_!@#$%^&*() ]+)").matcher(queryBody).matches() ||
 					Pattern.compile("NOT [a-zA-Z0-9_!@#$%^&*() ]").matcher(queryBody).matches()) {
 					lm.search(queryBody,"boolean",1);
 			}
 			else {
 				if(!queryBody.isEmpty())
-					lm.search(queryBody,"query",1);
+					lm.search(new Indexer().stemmerStopWords(queryBody),"query",1);
 			}
-			if(Pattern.compile("([a-zA-Z0-9_!@#$%^&*() ]+(AND|OR)+[a-zA-Z0-9_!@#$%^&*() ]+)").matcher(queryTitle).matches() ||
+			if(Pattern.compile("([a-zA-Z0-9_!@#$%^&*() ]+ (AND|OR)+ [a-zA-Z0-9_!@#$%^&*() ]+)").matcher(queryTitle).matches() ||
 					Pattern.compile("NOT [a-zA-Z0-9_!@#$%^&*() ]").matcher(queryTitle).matches()) {
 						lm.search(queryTitle,"boolean",0);
 				}
 			else {
 				if(!queryTitle.isEmpty())
-					lm.search(queryTitle,"query",0);
-
+					lm.search(new Indexer().stemmerStopWords(queryTitle),"query",0);
 			}
-			if(Pattern.compile("([a-zA-Z0-9_!@#$%^&*() ]+(AND|OR)+[a-zA-Z0-9_!@#$%^&*() ]+)").matcher(queryPeople).matches() ||
+			if(Pattern.compile("([a-zA-Z0-9_!@#$%^&*() ]+ (AND|OR)+ [a-zA-Z0-9_!@#$%^&*() ]+)").matcher(queryPeople).matches() ||
 				Pattern.compile("NOT [a-zA-Z0-9_!@#$%^&*() ]").matcher(queryPeople).matches()) {
 						lm.search(queryPeople,"boolean",2);
 			}
@@ -101,7 +95,7 @@ public class JavaFx extends Application{
 				if(!queryPeople.isEmpty())
 					lm.search(queryPeople,"query",2);
 			}
-			if(Pattern.compile("([a-zA-Z0-9_!@#$%^&*() ]+(AND|OR)+[a-zA-Z0-9_!@#$%^&*() ]+)").matcher(queryPlace).matches()||
+			if(Pattern.compile("([a-zA-Z0-9_!@#$%^&*() ]+ (AND|OR)+ [a-zA-Z0-9_!@#$%^&*() ]+)").matcher(queryPlace).matches()||
 			Pattern.compile("NOT [a-zA-Z0-9_!@#$%^&*() ]").matcher(queryPlace).matches()) {
 					lm.search(queryPlace,"boolean",3);
 			}
@@ -120,7 +114,7 @@ public class JavaFx extends Application{
 	
 	public static void setDoc_arr(ArrayList<Document> docs_arr) {
 		docs=docs_arr; //takes arraylist to local variable
-		DisplayDoc();
+		DisplayDoc(); //display found docs
 	}
 	
     @Override
@@ -134,12 +128,13 @@ public class JavaFx extends Application{
         bt_search =ButtonForm("Search");
         bt_delete =ButtonForm("Delete");
         bt_insert =ButtonForm("Insert");
+        bt_edit =ButtonForm("Edit");
         bt_info=ButtonForm("Info");
         
         //LimitButton
         bt_limit=DisplaylimitDocs();
       
-        HBox buttons = new HBox(bt_search,bt_delete,bt_insert,bt_info,bt_limit);
+        HBox buttons = new HBox(bt_search,bt_delete,bt_insert,bt_edit,bt_info,bt_limit);
         buttons.setPadding(new Insets(0,50,0,50));
         buttons.setSpacing(15);  
         HBox.setHgrow(buttons, Priority.ALWAYS);
@@ -160,21 +155,20 @@ public class JavaFx extends Application{
     	DisplayDocument();
 
         //Scene startup
-        Scene scene = new Scene(mainpane, 600, 550);
+        Scene scene = new Scene(mainpane, 600, 450);
         this.scene=scene;
         stage.setScene(scene);
         stage.setTitle("Not Google");
         stage.show();
         stage.setMinHeight(stage.getHeight());
-        //stage.getIcons().add(new Image("file:/Users/macbookpro2017/eclipse-workspace/NotGoogle/media/NotGoogle-icon.jpg"));
+        //stage.getIcons().add(new Image("file:/Users/macbookpro2017/eclipse-workspace/NotGoogle/media/NotGoogle-icon.jpg")); //for windows
         stage.setMinWidth(stage.getWidth());
 
     }
     
-    private static ChoiceBox DisplaylimitDocs() {
+    private static ChoiceBox<String> DisplaylimitDocs() {
     	ChoiceBox<String> cb = new ChoiceBox<String>(FXCollections.observableArrayList(
-    		    "3", "9", "15","Unlimited")
-    		);
+    		    "3", "9", "15","Unlimited"));
     	cb.setValue("Unlimited");
     	cb.setPrefSize(150, 30);
     	cb.setOnAction((e)->{
@@ -188,7 +182,7 @@ public class JavaFx extends Application{
     }
     
     private static Text displayInfo() {
-    	Text t = new Text("There are 3 ways to search. 1)Boolean search with this example <term AND|OR term>"
+    	Text t = new Text("There are 3 ways to search. 1)Boolean search with this example: TERM AND|OR TERM "
     			+ "2)Prashe search using \"terms\""
     			+ "3)Just words");
     	t.setFont(new Font(16));
@@ -201,7 +195,9 @@ public class JavaFx extends Application{
     private static void DisplayDocument() {
     	 //add List of documents(results) pane to mainpane
         document_listView = new ListView<String>();
-        document_listView.setPrefSize(200,500);
+        document_listView.setPrefSize(250,500);
+        document_listView.setMinSize(250, 500);
+        document_listView.setMaxSize(250, 500);
         document_listView.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
         mainpane.getChildren().add(document_listView); 
         document_listView.setVisible(false);
@@ -210,11 +206,10 @@ public class JavaFx extends Application{
     
     //To have nice control of buttons
     private Button ButtonForm(String name) {
-    	 ButtonHandler handler = new ButtonHandler();
     	 Button bt = new Button(name); 
     	 bt.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
     	 bt.setPrefSize(150, 30);
-    	 bt.setOnAction(handler);
+    	 bt.setOnAction(new ButtonHandler());
          return bt;
     }
 
@@ -226,20 +221,36 @@ public class JavaFx extends Application{
 				if(source == bt_search) {
 					DoQuery();
 				}
+				else if(source==bt_edit) {
+					ObservableList<String> selectedItems =document_listView.getSelectionModel().getSelectedItems();
+					for(String lb:selectedItems) {
+						int edit_this_one=-1;
+						for(int i=0;i<docs.size();i++) {
+							if(lb.equals(docs.get(i).get(LuceneConstants.TITLE))) {
+								edit_this_one=i;
+								break;
+							}
+						}
+						EditTheDoc etd = new EditTheDoc(docs.get(edit_this_one),scene);
+						try {
+							etd.start(stage);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+						break;	
+					}
+				}
 				else if(source==bt_insert) {
 					new InsertFx(scene).start(stage);
 
 				}
 				else if(source==bt_info) {
-					int opacity= info_text.getOpacity()==0?1:0;
+					int opacity= info_text.getOpacity()==0?1:0;//switching between 0 and 1 for opacity
 					info_text.setOpacity(opacity);
 				}
 				else if(source==bt_delete) {
 					try {
 						
-						//TODO CHECKARE TA INDEXWRITERS GIA NA SVINEIS
-
-						//EDW KAI KATW ALLA
 						ObservableList<String> selectedItems =document_listView.getSelectionModel().getSelectedItems();
 						for(String lb : selectedItems) {
 							int delete_this_one=-1;
@@ -263,8 +274,9 @@ public class JavaFx extends Application{
 							indexWriter.deleteDocuments(new Term(LuceneConstants.FILE_PATH,f.getAbsolutePath()));
 							//delete the file from dir
 							f.delete();
-							//delete file frm listview
+							//delete file from listview
 							document_listView.getItems().remove(lb);//from current list not from index/data
+							
 							indexWriter.close();
 							directory.close();
 						}
@@ -284,10 +296,10 @@ public class JavaFx extends Application{
 		public void handle(MouseEvent event) {			
 			//Double click
 			if(event.getClickCount()==2) {
-				for(int i=0;i<docs.size();i++) {
-					
-					//event.getTargert ->ayto poy patithike an periexei to titlo toy doc
-					if(event.getTarget().toString().contains(docs.get(i).get(LuceneConstants.TITLE))) {
+				for(int i=0;i<docs.size();i++) {//psaxnei sta docs poy epistrafikan
+					//event.getSource ->ayto poy patithike se listview
+			        ListView lb = (ListView)event.getSource();
+					if(docs.get(i).get(LuceneConstants.TITLE).contains(lb.getSelectionModel().getSelectedItem().toString())) { //pairnw to onoma
 						ReadTheDoc rtd = new ReadTheDoc(docs.get(i),scene);
 						try {
 							rtd.start(stage);
@@ -297,7 +309,6 @@ public class JavaFx extends Application{
 						break;
 					}
 				}
-				
 			}
 			
 		}
@@ -364,7 +375,7 @@ public class JavaFx extends Application{
     	counter_docs=0;
     	for(Document doc : docs) {
     		document_listView.getItems().add(doc.get(LuceneConstants.TITLE));
-    		System.out.println(doc.get(LuceneConstants.FILE_NAME));
+    		//System.out.println(doc.get(LuceneConstants.FILE_NAME));
     		counter_docs+=1;
     		if(!bt_limit.getValue().toString().contains("Unlimited"))//ama dn einai unlimited
     			if(counter_docs==Integer.parseInt(bt_limit.getValue().toString()))break;//an ftasoyme ton epithimito arithmo
@@ -372,7 +383,6 @@ public class JavaFx extends Application{
     	MouseClicked mc = new MouseClicked();
     	document_listView.setOnMouseClicked(mc);
     	document_listView.setVisible(true);
-    	
     	stage.setHeight(950);//make the window bigger for the results
     }
     

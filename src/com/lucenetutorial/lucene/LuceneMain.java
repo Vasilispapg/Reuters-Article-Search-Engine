@@ -14,12 +14,15 @@ import org.apache.lucene.search.TopDocs;
 
 public class LuceneMain {
 	
-	public static String dataDir = "/Users/macbookpro2017/eclipse-workspace/NotGoogle/Data/Demo";
+	//MAC
+	public static String dataDir = "/Users/macbookpro2017/eclipse-workspace/NotGoogle/Data/Reuters_articles";
 	public static String indexDir = "/Users/macbookpro2017/eclipse-workspace/NotGoogle/Index";
-
-//	public static String dataDir = "C:\\Users\\Vasilis\\eclipse-workspace\\LuceneProject1\\Data\\Demo";
-//	public static String indexDir = "C:\\Users\\Vasilis\\eclipse-workspace\\LuceneProject1\\Index";
-//	String dataDir = "C:\\Users\\Vasilis\\eclipse-workspace\\LuceneProject1\\Data\\Reuters_articles";
+	
+	//WINDOWS
+/*
+	public static String indexDir = "C:\\Users\\Vasilis\\eclipse-workspace\\LuceneProject1\\Index";
+	String dataDir = "C:\\Users\\Vasilis\\eclipse-workspace\\LuceneProject1\\Data\\Reuters_articles";
+	*/
 	private static Indexer indexer;
 	private static Searcher searcher;
 	private static String [] args_javafx;
@@ -61,7 +64,7 @@ public class LuceneMain {
 				//vazoyme ta docs se mia arraylist gia na ta steiloyme sto javafx kai na efmanistoyn
 				for(TopDocs hit : hits) {
 					for(ScoreDoc scoreDoc : hit.scoreDocs) {
-						System.out.println(scoreDoc.score); //edw fainontai ta score
+						//System.out.println(scoreDoc.score); //edw fainontai ta score
 						Document doc = searcher.getDocument(scoreDoc);
 						doc_arr.add(doc);//add docs into arraylist
 						//FormatofDoc(doc); //episis emfanizoyme tis apantiseis

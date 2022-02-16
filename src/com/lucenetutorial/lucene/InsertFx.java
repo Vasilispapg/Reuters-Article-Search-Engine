@@ -36,6 +36,9 @@ public class InsertFx {
 		this.scene=scene;
 		flag_big_screen=false;
 	}
+	public InsertFx() {
+		
+	}
 	
 	public void start(Stage stage) { 
       
@@ -144,7 +147,7 @@ public class InsertFx {
          return bt;
     }
 	
-	private void writeToFile(File f,String places,String people,String title,String body) {
+	 public void writeToFile(File f,String places,String people,String title,String body) {
 		FileWriter fw;
 		try {
 			fw = new FileWriter(f.getCanonicalFile(), true);
