@@ -1,1 +1,2 @@
-# NotGoogle
+#     A Java, JavaFX and Lucene project. I created an application made to search in Reuters articles. Using Lucene I was able to make my own search engine, with almost 10.000 Reuters articles. My search engine could search with vector space model or with phrase search. Besides, I used JavaFx to make a windows application to search on my database and I also used Java to process the data and to make new Reuters files for my database, or to delete the selected ones through the application.
+
